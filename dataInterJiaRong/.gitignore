@@ -1,0 +1,16 @@
+﻿.idea
+__pycache__
+build
+bak
+pak
+byte处理
+rs
+spare
+ven
+deploy
+
+*.rar
+*.spec
+*.log
+*.dat
+*.bak
