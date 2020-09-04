@@ -1,0 +1,13 @@
+﻿.idea
+__pycache__
+build
+bak
+rs
+ven
+deploy
+
+*.rar
+*.spec
+*.log
+*.dat
+*.bak
