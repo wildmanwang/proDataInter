@@ -1,0 +1,282 @@
+unit Unit2;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls,ShellApI, DB, ADODB;
+
+Const
+  WMA_InterPro =$0500;       //与软件间通信的消息编号
+  //***********参数类型值********//
+  CX_OK =0;
+  CX_DC1 =1;
+  CX_DC2 =2;
+  CX_DC3 =3;
+  CX_DC4 =4;
+  CX_DC5 =5;
+  CX_DC6 =6;
+  CX_DC7 =7;
+  CX_DC8 =8;
+  CX_Login =10;
+  CX_Down  =11;
+type
+  TForm1 = class(TForm)
+    Timer1: TTimer;
+    Edt_Send: TEdit;
+    Memo_Cont: TMemo;
+    Button1: TButton;
+    Button2: TButton;
+    Label1: TLabel;
+    Label2: TLabel;
+    Edt_Receive: TEdit;
+    Label3: TLabel;
+    ADO: TADOConnection;
+    TmpQry: TADOQuery;
+    Button3: TButton;
+    CheckBox1: TCheckBox;
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormCreate(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+  private
+    { Private declarations }
+    Procedure Inter(var Msg :TMessage); message WMA_InterPro;
+    Function ProcessMsg(strList :TStrings) :Boolean;
+    Procedure ExecQuery(SQLStr: String);
+    Function OpenQuery(OQuery: TADOQuery; SQLStr: String): Boolean;
+
+  public
+    ToHandle :Thandle;
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+Var
+  Pathstr :String;
+//  blnOutTime :Boolean;
+procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  //*******保证让软件能够和程序同时关闭（软件关闭时也一样）************//
+  PostMessage(ToHandle,WM_Close,0,0);
+end;
+
+procedure TForm1.Inter(var Msg: TMessage);
+Var
+  StrList :TStrings;
+  temp:bool;
+  i:integer;
+begin
+  //*******第一次接收到的消息类型的编号为软件响应消息的窗口句柄************//
+  IF ToHandle =0 Then Begin
+    ToHandle :=Msg.LParam;   
+  End Else IF (Msg.LParam =11) Or (Msg.LParam =10) Then Begin
+//********************************************************** //
+//程序需要根据消息类型判断和进行必要的处理                   //
+//********************************************************** //
+    strList :=TStringList.Create;
+    strList.Add('1');
+    strList.SaveToFile(Pathstr + 'TXT\DL' + '.TXT');
+    strList.Free;
+//处理完后必须通知软件，如果是接收到点菜机发出的短信则不用通知 //
+    temp:=PostMessage(ToHandle,WMA_InterPro,0,Msg.LParam);
+    if temp=True then  i:=1;
+  End Else Begin
+    strList :=TStringList.Create;
+    strList.LoadFromFile(Pathstr + 'TXT\T' + IntToStr(Msg.LParam) + '.TXT');
+//********************************************************** //
+//程序需要根据从文件中收到的内容进行必要的判断和处理         //
+//处理完后再把需要返回的信息写入到下面相应的文件中           //
+//********************************************************** //
+    ProcessMsg(strList);
+    
+    strList.SaveToFile(Pathstr + 'TXT\R' + IntToStr(Msg.LParam) + '.TXT');
+    strList.Free;
+//*****最后通知软件处理结果和返回内容**************//
+    PostMessage(ToHandle,WMA_InterPro,0,Msg.LParam);
+  End;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  Pathstr :=ExtractFilePath(Application.ExeName);
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+Var
+  StrList :TStrings;
+  str ,Allstr :String;
+begin
+  strList :=TStringList.Create;
+//*****这些内容是模仿点菜机发送短信，正常情况是通过点菜机发送**************//
+//*********相当于是从文件中读取后再判断该发往哪个基站的点菜机**********//
+  Allstr :='';
+  str :=Edt_Send.Text;
+  Allstr :=StringOfchar('0',3 - Length(Str)) + str;
+  str :=Edt_Receive.Text;
+  Allstr :=Allstr + ' ' + StringOfchar('0',3 - Length(Str)) + str;
+  Allstr :=Allstr + ' ' + Memo_Cont.Text;
+//*******************//
+  strList.Add(Allstr);
+  strList.SaveToFile(Pathstr + 'TXT\DX' + '.TXT');
+  strList.Free;
+  PostMessage(ToHandle,WMA_InterPro,0,0);
+
+end;
+
+
+//********************************************************** //
+//功能：根据请求类型码的不同分别实现                         //
+//注意：不管发生什么异常或其它各种情况，都需要有返回内容     //
+//      点菜机的每行只能显示20个字符，为了显示美观，需要     //
+//      程序做一些适当的处理                                 //
+//********************************************************** //
+function TForm1.ProcessMsg(strList: TStrings): Boolean;
+Var
+  strFunc ,SqlStr :String;
+  TableCode ,Persons ,Waiter ,Dishcode ,DishNum ,LbCode:String;
+begin
+  Result :=False;
+  Try
+    //********当返回的字符串的长度不足指定长度时需要删除多余的空格***********//
+    strFunc :=Trim(Copy(strList.Strings[0],1,4));
+    //********空闲汇总***********//
+    If SameText(strFunc,'KXHZ') Then Begin
+      sqlstr :='Select TT.TypeName,Count(T.TableCode) As SL' +
+              ' From Tables T,TableTypes TT' +
+              ' Where T.TypeCode =TT.TypeCode And T.State =''0''' +
+              ' Group By TT.TypeName';
+      If Not OpenQuery(TmpQry,SqlStr) Then Exit;           
+      While strList.Count >1 do
+        strList.Delete(strList.Count -1);
+      IF TmpQry.Eof Then
+        strList.Add('没有空闲餐台!');
+      While Not TmpQry.Eof do Begin
+        strList.Add(TmpQry.FieldByName('TypeName').AsString +
+            StringOfChar(Char(32),20 - Length(TmpQry.FieldByName('TypeName').AsString +
+             TmpQry.FieldByName('SL').AsString)) +
+             TmpQry.FieldByName('SL').AsString);
+        TmpQry.Next;
+      End;
+    //********类别空闲***********//
+    End Else If SameText(strFunc,'LBKX') Then Begin
+      LbCode := Copy(strList.Strings[1],1,2);
+      sqlstr :='Select T.TableCode,T.TableName' +
+              ' From Tables T,TableTypes TT' +
+              ' Where T.TypeCode =TT.TypeCode And T.State =''0''' +
+              ' And TT.Typecode =' + #39 + Trim(LbCode) + #39;
+      If Not OpenQuery(TmpQry,SqlStr) Then Exit;
+      While strList.Count >1 do
+        strList.Delete(strList.Count -1);
+      IF TmpQry.Eof Then
+        strList.Add('没有空闲餐台!');
+      While Not TmpQry.Eof do Begin
+        strList.Add(TmpQry.FieldByName('TableCode').AsString +
+            StringOfChar(Char(32),20 - Length(TmpQry.FieldByName('TableCode').AsString +
+             TmpQry.FieldByName('TableName').AsString)) +
+             TmpQry.FieldByName('TableName').AsString);
+        TmpQry.Next;
+      End;
+    //**********开台*********//
+    End Else IF SameText(strFunc,'KT') Then Begin
+      TableCode :=Trim(Copy(strList.Strings[1],1,4));
+      Persons :=Trim(Copy(strList.Strings[1],6,2));
+      Waiter :=Trim(Copy(strList.Strings[1],8,5));
+      //********在实际的程序中你可能需先检查餐台编号和服务员编号是否有效***********//
+      SqlStr :='Insert Into PCards (TableCode,pointTime,Persons,Waiter)'+
+              ' Values(' +
+              #39 + TableCode + #39 + ',Now,' +
+              Persons + ',' +
+              #39 + Waiter + #39 + ')';
+      ExecQuery(Sqlstr);
+      SQlStr :='Update Tables Set State =''1''' +
+              ' Where TableCode =' + #39 + TableCode + #39;
+      ExecQuery(Sqlstr);
+      While strList.Count >1 do
+        strList.Delete(strList.Count -1);
+      strList.Add('开台成功!');
+    //*******加菜************//
+    End Else IF SameText(strFunc,'JC') Then Begin
+      TableCode :=Trim(Copy(strList.Strings[1],1,7));
+      DishCode :=Trim(Copy(strList.Strings[1],9,5));
+      DishNum :=Trim(Copy(strList.Strings[1],15,4));
+      //******在实际中是根据点菜机编号就可以得到使用该点菜机的服务员*************//
+      Waiter :=Copy(strList.Strings[0],6,3);
+      SqlStr :='Insert Into PCardFBs (TableCode,PointTime,Person,Waiter,Quantity)'+
+              ' Values(' +
+              #39 + TableCode + #39 + ',Now,' +
+              #39 + Waiter + #39 + ',' +
+              #39 + Waiter + #39 + ',' +
+              DishNum + ')';
+      ExecQuery(Sqlstr);
+      While strList.Count >1 do
+        strList.Delete(strList.Count -1);
+      strList.Add('点菜成功!');
+    End Else   IF SameText(strFunc,'DC') and (checkbox1.Checked) Then Begin
+      While strList.Count >1 do
+        strList.Delete(strList.Count -1);
+      //返回——点菜成功，点菜机的点菜数据才能清空，必须在第一行的开始，前面不能有空格等
+      strList.Add('点菜成功!!');
+    //*********点菜机登陆**********//
+    End Else  IF SameText(strFunc,'DL') Then Begin
+      While strList.Count >1 do
+        strList.Delete(strList.Count -1);
+      strList.Add('1 张小丫');
+    End Else Begin                     //范例没有进行处理，你自己可以需要另外处理
+{      While strList.Count >1 do
+        strList.Delete(strList.Count -1);}
+      strList.Add('收到并处理完成!');
+      Exit;
+    End;
+
+    Result :=True;
+  Except
+    While strList.Count >1 do
+      strList.Delete(strList.Count -1);
+    strList.Add('处理未完成!');             //保证任何时候都能返回有内容
+    Result :=False;
+  End;
+end;
+
+Procedure TForm1.ExecQuery(SQLStr: String);
+Begin
+  TmpQry.Close;
+  tmpqry.SQL.text := sqlstr;
+  tmpqry.ExecSQL;
+End;
+
+
+//********************************************************** //
+//功能：把字符串查询的内容在数据集中打开                     //
+//********************************************************** //
+function TForm1.OpenQuery(OQuery: TADOQuery; SQLStr: String): Boolean;
+begin
+  Result := True;
+  Try
+    If OQuery.Active Then OQuery.close;
+    oquery.sql.Text := sqlstr;
+    OQuery.Open;
+  Except
+    Result :=False;
+  End;
+
+end;
+
+procedure TForm1.Button3Click(Sender: TObject);
+begin
+  PostMessage(ToHandle,WMA_InterPro,0,12);
+end;
+
+end.
+

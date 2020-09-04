@@ -1,0 +1,55 @@
+******************************************
+在PB中启动wx.exe
+String str_null,str_filename,hwn
+long ll_rc
+hwn=String(handle(parent))
+setnull(str_null)
+str_filename='wx.exe'
+ll_rc=ShellExecute( Handle(Parent), str_null, str_filename , hwn, str_null, 0)
+*******************************************
+if message.number = 1280 then
+	choose case message.LongParm
+		case 1
+			f_recevie('1')
+		case 2
+			f_recevie('2')
+		case 3
+			f_recevie('3')
+		case 4
+			f_recevie('4')
+		case 5
+			f_recevie('5')
+		case 6
+			f_recevie('6')
+		case 7
+			f_recevie('7')
+		case 8
+			f_recevie('8')
+		case 10
+			f_dl()
+		case 11
+			f_download()
+
+		case else
+			if gl_handle = 0 then
+			gl_handle = message.longparm
+		end if
+	end choose
+	
+end if 
+
+ 上面是在PB 窗口的OTHER事件里进行消息判断。 
+
+********************************
+注意一下 ，pda_Handle = FindWindowA(pda_Class, "无线点菜机管理")
+if pda_Handle > 0 then//程序已经运行
+send(pda_Handle,16,0,1)//如果运行就关闭程序 
+
+************************************
+
+pda_Handle = FindWindowA(pda_Class, "无线点菜机管理")//这是得到点菜机接收程序的句柄
+send(pda_Handle,16,0,1)//如果运行就关闭程序。这是向点菜机接收程序发送消息。
+其中findwindowa()这个函数是WINDOWS函数。
+定义如 ：
+FUNCTION ulong FindWindowA(ulong classname,string windowname) LIBRARY "user32.dll"
+****************************

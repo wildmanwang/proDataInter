@@ -1,0 +1,14 @@
+请按顺序分别安装以下组件：
+1 pytz-2017.2-py2.py3-none-any.whl
+2 MarkupSafe-1.1.0-cp36-cp36m-win_amd64.whl
+3 Jinja2-2.10.1-py2.py3-none-any.whl
+4 Werkzeug-0.15.5-py2.py3-none-any.whl
+5 itsdangerous-1.1.0-py2.py3-none-any.whl
+6 Click-7.0-py2.py3-none-any.whl
+7 Flask-1.1.1-py2.py3-none-any.whl
+8 pymssql-2.1.4-cp36-cp36m-win_amd64.whl
+9 mod_wsgi-4.5.24+ap24vc14-cp36-cp36m-win_amd64.whl
+
+每个组件安装方式：
+步骤1：把对应以whl结尾的安装文件拷贝到python安装目录\Scripts下
+步骤2：在python的安装目录的\scripts文件夹下用命令行执行，例如：pip3 install "pytz-2017.2-py2.py3-none-any.whl"
