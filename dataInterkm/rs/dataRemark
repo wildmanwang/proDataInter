@@ -1,0 +1,36 @@
+# -*- coding:utf-8 -*-
+
+【待处理】
+interTmp表增加门店字段
+单价、金额*1000，取消该操作，该操作是为了四舍五入后金额为0
+增加UseCRM参数控制
+
+【需求问题】
+Erp没有提供图片接口
+
+【技术问题】
+App菜品档案property属性：属性(0自制品 1套餐 2商品 3配料/货品)，0、2有什么区别？目前按0：普通菜品 1：套餐赋值
+Erp参数UseCRM没有找到，只有usewx，按哪个参数启用接口？目前按usewx
+Erp表wx_t_order_master0.ordertype如何赋值？目前按1快餐单赋值
+Erp表wx_t_order_master0接口说明中的autoTurnBill, nflag, nOuttime, thirdOrderNo四个字段用浅色表示，且在数据库中不存在是什么情况？
+Erp表d_t_bill_pay_alipay0字段cbill_guid是否是自增序号列？目前按自增序号列处理
+Erp表wx_t_order_detail0字段eSuitFlag是把套餐子项如何赋值？目前赋值“子项”
+Erp表wx_t_order_detail0字段eSuitBill字段规则是什么？目前按每个主项分组计流水
+
+【测试环境】
+APP端：
+    服务器：119.23.61.176:1433
+    数据库账户：dine_test/111111
+    校里老师端：http://m.vanke.com/#/details/10000005N
+    老师端账户：teacher_demo/111111
+    校里家长端：http://m.vanke.com/#/details/APP101786
+    家长端账户：chenxiao/111111
+    家长端账户：chenxiao/111111
+    应用管理后台：http://saastest.uyeek.com
+    应用管理账户：chenxiao/111111
+    应用管理后台商品上线流程：
+        ——》【餐厅管理-新增】增加餐厅，把自己加入餐厅管理人员列表
+        ——》【我的餐厅-操作-餐厅日历维护】维护营业日期
+        ——》【商品管理】（接口自动处理）获取ERP商品列表
+        ——》【商品分类】（只能手工维护）新增商品分类，并把商品加入到类别
+        ——》【每周商品维护】导入/手工新增每周可销售商品

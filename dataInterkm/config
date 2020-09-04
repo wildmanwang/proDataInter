@@ -1,0 +1,17 @@
+[Database_app]
+host = 119.23.61.176
+user = dine_test
+password = 111111
+database = VMA_saas
+
+[Database_erp]
+host = .\MSSQL2008
+user = sa
+password = 0Wangle?
+database = kmcy_v8
+
+[Other]
+bill_get_interval = 10
+Dine_ID = cb9d3903-eb2d-40e4-aaae-39bc18b9a393
+branch_no = 00
+tabnumber = 01

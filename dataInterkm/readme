@@ -1,0 +1,27 @@
+# -*- coding:utf-8 -*-
+找不到模块
+	虚拟环境使用：activate.bat;deactivate.bat
+拒绝访问（5）
+	安装服务需要管理员权限，以管理员启动pycharm
+1053 服务没有及时响应启动或控制请求1
+	找到服务执行exe，手动执行，发现少了pywintypes36.dll，找到该文件，拷贝到exe所在目录
+1053 服务没有及时响应启动或控制请求2
+    使用python ###.py debug操作可看到故障来源
+    因为是系统操作，不要用虚拟环境
+    复制Lib\site-packages\pywin32_system32下的DLL到Lib\site-packages\win32目录下
+configparser本文件运行没问题，应用运行读取不到section
+    配置文件写绝对路径
+configparser.get()方法有时返回string，有时返回tuple
+    在语句后多了符号“,”，get()返回的str自动被组装成tuple
+连接数据库失败
+    安装了两个SQL Server实例，第一个实例占用了1433端口，导致第二个实例无法网络连接
+    查看配置工具-SQL Server配置管理器-SQL Server服务，发现对应服务没有启动
+    修改配置工具-SQL Server配置管理器-SQL Server网络配置-<实例名>的协议-TCP/IP，启用并修改全部连接的动态端口置空，固定端口1433，活动=是，重启SQL Server对应服务即可
+pyinstaller打包后运行错误：找不到模块
+    找不到哪个模块就在程序中import哪个模块
+pyinstaller打包后中不到配置文件
+    在文件中不要根据__file__属性定位打包后的文件，应该根据sys.executable来定位，前者打包后定位到了 c:\windows\system32目录下
+此文件的版本与正在运行的Windows版本不兼容。请检查计算机的系统信息以了解需要x86(32位)还是X64(64位)版本的程序，依然联系软件发布者。
+    原因：打包用的是64位，客户电脑是32位
+    解决：用Conda创建独立的环境重新打包。可以安装miniconda
+    https://www.cnblogs.com/sfriend/p/10923330.html

@@ -1,0 +1,12 @@
+1 备份客户数据库，包括科脉端、APP端
+
+2 停止已有数据接口的服务，选择非营业时间、且APP端点菜数据都已传输到科脉数据库时操作
+
+3 在已安装过接口的门店执行以下语句：
+其中：
+	请把'kmi#01'引号中的'01'2个字符替换成对应科脉软件的门店编码，对应config配置中的[Other/branch_no]配置项
+	请把'1234567890'引号中的'1234567890'10个字符替换成APP软件中的门店ID，对应config配置中的[Other/Dine_ID]配置项
+update Dine_Goods set goodsid = goodsid + 'kmi#01' where Dine_ID = '1234567890' and goodsid not like '%kmi#%'
+go
+
+4 在各个门店安装新版本接口程序，请启动接口程序
