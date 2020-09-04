@@ -1,0 +1,42 @@
+[frontEnd]
+host = 39.108.105.70
+user = sa
+password = Windows2008
+database = kmcy_v8
+
+[backEnd]
+host = https://szyd.test.ik3cloud.com
+user = administrator
+password = szyd@5201
+database =
+
+[controlEnd]
+host = 39.108.105.70
+user = sa
+password = Windows2008
+database = inter_tmp
+
+[control]
+timingBaseInterval = 300
+timingBusiDay = 1
+timingBusiTime = 05:30
+
+[org]
+00 = 1
+07 = 108947
+08 = 108948
+09 = 111125
+
+[payment]
+01 = JSFS01_SYS
+11 = YLXS
+13 = JSFS32_SYS
+14 = JSFS31_SYS
+24 = JSFS31_SYS
+other = JSFS21_SYS
+
+[busiBackKingdee]
+defaultOrgNo = 100
+clsBigNo = 01
+deptNo = BM000001
+userNo = 00001

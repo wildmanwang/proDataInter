@@ -1,0 +1,11 @@
+.idea
+__pycache__
+build
+venv
+rs/科脉好餐谋V11安装包
+
+*.rar
+*.spec
+*.log
+*.dat
+*.bak

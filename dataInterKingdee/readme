@@ -1,0 +1,174 @@
+# -*- coding:utf-8 -*-
+Kemai好餐谋连接Kingdee云后台
+
+【好餐谋】
+http://43.241.215.221:88/km_hcm/home/hcmlogin.aspx
+账号：0078
+密码：0078
+
+【Kingdee】
+https://szjdy.test.ik3cloud.com/K3cloud/Silverlight/IndexSL.aspx
+用户：罗俊强
+密码：66668888
+
+以上不好用。用下面的地址：
+https://open.kingdee.com/K3Cloud/Open/ExpressProduct.aspx?id=zs0PnoWs0TtaBl1elyQMDItzTVMEpVsbtHHLEeBOuT78BnccjQ0WFEhKrPkgYXEZiSdvNnIXJsDkUicbc9sDUcXHlrVNGD5q5q6eTep5ThwPHdlFjOWZDN9e6eQq15lC5EvXv8Zy%2fowER8uwf%2bT64iydsiKQ0prIrGjYcLtCPJs%3dThisIsSplit&provider=AuthUserModule&state=636882618657741250&code=15526362838fbf22fdf3d77ad80e494f
+
+1.域名：访问域名 https://szyd.ik3cloud.com
+2.管理员：管理员用户名：administrator，管理员默认密码：szyd@5201
+  普通用户：蓝开煊，密码：szyd@5201
+3.普通用户：普通用户默认密码：Rr8$uNeo  （新增用户的默认密码）
+4.WPF客户端设置：https://szyd.ik3cloud.com/K3cloud（别用这个地址登录，作死）
+
+【正月水饺】
+阿里云ip:39.108.105.70
+用户名:Administrator
+密码:Windows2008
+sa密码：Windows2008
+
+【五虎将】
+阿里云ip:120.77.217.209
+阿里云账号：WHJ吾虎将
+阿里云密码：whj666
+登录用户：Administrator
+登录密码：WHJtl2292
+VNC密码：978701
+
+next to do:
+* 参数有效性校验
+* 日志优化：开始传输数据时，记录日志：开始传输#条某某数据，结束提示成功传输
+* 日志优化：日志文件超过一定大小后备份，并使用新文件
+
+接口限制：
+1 每个菜品必须指定长度为6的唯一条码
+2 食品名称长度不能超过30
+
+接口其他：
+* 两套接口风格完全不同，连登录都不同
+* 食品接口参数太多100+个参数
+* 每个菜品必须指定长度为6的唯一条码
+* 部门、用户、菜品等在接口中必须传入ID，但是其他地方用的是编码，而且在软件中都查不到ID
+* 资料分配的接口不可用
+* 表单查询（用于根据编码查ID）接口查部门和用户时结果不正确或者报错
+
+problem follow up:
+
+【好餐谋相关表结构】
+系统参数表           SysSetting
+门店表                 Branch
+大类表                 FoodBigCls
+小类表                 FoodLitCls
+菜品表                 Food
+	FoodId		出品编码
+	LitClsName	小类名称
+	UnitId		例牌名称
+	LitClsId	小类Id
+	BigClsId	大类Id
+	SalePrice	价格
+	PrcRoom		包房价1
+	PrcRoom2	包房价2
+	PrcRoom3	包房价3
+	PrcRoom4	包房价4
+	PrcVip1		会员价1
+	PrcVip2		会员价2
+	PrcVip3		会员价3
+	FoodSpecId	例牌Id
+例牌表                 FoodSpecification
+多例牌表                FoodSize
+门店菜品表           FoodBranch
+套餐表                 FoodSuitFlow
+套餐可替换项目表        FoodSuitExchangeFlow
+销售单主表           FoodBill
+	newbillid	单号
+	billid		门店单号
+	Branchid	总部门店ID
+	cbranchid	门店ID
+	cbranchname	门店名称
+	business	营业日期
+	BillTime	点单日期
+	SettleTime	结帐日期
+	tableid		台位号
+	tablename	台位名称
+	statuss		单据状态：结帐
+	Billtype	单据类型：堂食单、外卖单
+	foodamt		出品金额
+	disamt		折扣金额
+	oughtamt	应付金额
+	payamt		付款金额
+销售单菜品表          FoodBillEntity
+	newbillid	单号
+	billid		门店单号
+	branchid	门店编码
+	foodbill	点单流水号
+	foodid		出品编码
+	foodname	出品名称
+	unit		例牌
+	prc		价格
+	qty		数量
+	amt		金额
+	extprc		加价
+	suitflag	套餐标志
+	suitbill	套餐序号
+	retsendflag	赠退标志：赠送、退品
+	retsendbill	原套餐序号
+	made		做法
+	disamt		折扣金额
+	servicefees	服务费
+	disserviceamt	服务费折扣金额
+	doqty		实际数量
+	roundamt	舍入金额
+销售单支付表          FoodBillPay
+	newbillid	单号
+	branchid	门店编码
+	billid		门店单号
+	billNum		付款序号
+	payId		付款方式编码
+	payname		付款方式名称
+	intype		实收虚收
+	payAmt	付款金额
+
+遇到过的问题：
+找不到模块
+	虚拟环境使用：activate.bat;deactivate.bat
+拒绝访问（5）
+	安装服务需要管理员权限，以管理员启动pycharm
+1053 服务没有及时响应启动或控制请求1
+	找到服务执行exe，手动执行，发现少了pywintypes36.dll，找到该文件，拷贝到exe所在目录
+1053 服务没有及时响应启动或控制请求2
+    使用python ###.py debug操作可看到故障来源
+    因为是系统操作，不要用虚拟环境
+    复制Lib\site-packages\pywin32_system32下的DLL到Lib\site-packages\win32目录下
+configparser本文件运行没问题，应用运行读取不到section
+    配置文件写绝对路径
+configparser.get()方法有时返回string，有时返回tuple
+    在语句后多了符号“,”，get()返回的str自动被组装成tuple
+连接数据库失败
+    安装了两个SQL Server实例，第一个实例占用了1433端口，导致第二个实例无法网络连接
+    查看配置工具-SQL Server配置管理器-SQL Server服务，发现对应服务没有启动
+    修改配置工具-SQL Server配置管理器-SQL Server网络配置-<实例名>的协议-TCP/IP，启用并修改全部连接的动态端口置空，固定端口1433，活动=是，重启SQL Server对应服务即可
+pyinstaller打包后运行错误：找不到模块
+    找不到哪个模块就在程序中import哪个模块
+pyinstaller打包后中不到配置文件
+    在文件中不要根据__file__属性定位打包后的文件，应该根据sys.executable来定位，前者打包后定位到了 c:\windows\system32目录下
+
+这次遇到的问题：
+JSON序列化过程报错：Object of type 'Decimal' is not JSON serializable
+    解决1：JSON序列化只支持部分数据类型，不支持的类型需要定义自己的encoder(json.JSONEncoder)，包括Decimal、Datetime等数据类型
+    解决2：生成json数据时，直接把数据转换成支持的类型，例如：decimal转换成float，datetime转换成str
+接口定义太复杂，调用出错
+    解决1：Quick HTTP Inspector谷歌插件的使用。注意，参数为空时删除，这个方法并不适用本次问题，因为Kingdee平台对请求有封装，捕获的请求并不是真正的请求
+    解决2：认真检查参数，解决
+访问https时抛出“SSL: CERTIFICATE_VERIFY_FAILED”错误（自己的主机没有抛出，阿里云服务器报错）：
+    原因：Python 升级到 2.7.9 之后引入了一个新特性，当使用urllib.urlopen打开一个 https 链接时，会验证一次 SSL 证书。
+        而当目标网站使用的是自签名的证书时就会抛出一个 urllib2.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:581)> 的错误消息，
+    解决：
+        import ssl
+        ssl._create_default_https_context = ssl._create_unverified_context
+食品销售清单下推食品材料耗用单报错“请维护部门的仓库”，重选部门后正常
+    食品销售清单表名：T_DIN_POSSalesBill
+    数据库名：k3cloud1、k3cloud2
+    单据号：POSXSD00102018
+    原因：部门ID错误
+    解决：通过通用表单数据获取部门表单，从而拿到部门ID
+
+https://www.jianshu.com/p/e4b6b1d0e10f

@@ -1,0 +1,39 @@
+[frontEnd]
+frontCode = Kemai
+frontName = 科脉营业系统
+host = .
+user = sa
+password = 0Wangle?
+database = kmcy_cloud
+
+[backEnd]
+backCode = Kingdee
+backName = 金蝶云
+host = https://szyd.ik3cloud.com
+user = administrator
+password = szyd@5201
+database = out_db
+
+[controlEnd]
+host = .
+user = sa
+password = 0Wangle?
+database = out_db
+
+[control]
+timingBaseInterval = 100
+timingBusiDay = 0
+timingBusiTime = 20:20
+
+[org]
+000 = 1
+000010 = 104787
+000011 = 104788
+
+[payment]
+01 = JSFS01_SYS
+other = JSFS02_SYS
+
+[busiBackKingdee]
+deptNo = BM000001
+userNo = 00001
