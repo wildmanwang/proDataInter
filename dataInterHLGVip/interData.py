@@ -31,7 +31,16 @@ class InterData():
             if not cur:
                 raise Exception("同步会员信息失败：{name}数据库[{db}]连接失败".format(name=self.sett.serverName, db=self.sett.serverDb))
             # 存入新表：门店、营业日期、单据号、手机号、积分标志
-            lsSql = r"select 1"
+            lsSql = r"insert into pos_t_vip_info ( card_id, vip_tel, card_id_flow, vip_name, vip_start_date, vip_end_date ) " \
+                    r"values ( '{card_id}', '{vip_tel}', '{card_id_flow}', '{vip_name}', '{vip_start_date}', '{vip_end_date}' )" \
+                    r"".format(
+                card_id=data["Id"][0],
+                vip_tel=data["Phone"][0],
+                card_id_flow=data["cardNo"][0],
+                vip_name=data["custName"][0],
+                vip_start_date=data["validBegTime"][0],
+                vip_end_date=data["validEndTime"][0]
+            )
             cur.execute(lsSql)
             conn.commit()
             rtnData["status"] = 1
@@ -61,7 +70,10 @@ class InterData():
             if not cur:
                 raise Exception("同步会员动态二维码失败：{name}数据库[{db}]连接失败".format(name=self.sett.serverName, db=self.sett.serverDb))
             # 存入新表：门店、营业日期、单据号、手机号、积分标志
-            lsSql = r"select 1"
+            lsSql = r"update pos_t_vip_info set card_id_source='{card_id_source}' where card_id='{card_id}'".format(
+                card_id=data["Id"][0],
+                card_id_source=data["Qrcode"][0]
+            )
             cur.execute(lsSql)
             conn.commit()
             rtnData["status"] = True
