@@ -38,7 +38,7 @@ def setVIPInfo():
     """
     推送会员信息
     """
-    paras = dict(request.form)
+    paras = json.loads(request.get_data(as_text=True))
     rtn = data.setVIPInfo(paras)
     return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
 
@@ -48,7 +48,7 @@ def setVIPCode():
     """
     推送会员动态二维码
     """
-    paras = dict(request.form)
+    paras = json.loads(request.get_data(as_text=True))
     rtn = data.setVIPCode(paras)
     return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
 
@@ -58,7 +58,7 @@ def queryBills():
     """
     查询会员消费
     """
-    paras = dict(request.form)
+    paras = json.loads(request.get_data(as_text=True))
     rtn = data.queryBills(paras)
     return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
 

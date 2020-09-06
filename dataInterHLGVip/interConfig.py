@@ -34,6 +34,10 @@ class Settings():
         self.webHost = config.get("webServer", "host")          # web服务器
         self.webPort = config.getint("webServer", "port")          # web端口
 
+        # 业务控制
+        self.vipClass = config.get("business", "vipclass")          # 默认会员类别
+        self.branchNo = config.get("business", "branchNo")          # 默认会员类别
+
     def _getLogger(self):
         logger = logging.getLogger("[DataInterCatering]")
         handler = logging.FileHandler(os.path.join(self.path, "service.log"))
