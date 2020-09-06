@@ -115,7 +115,8 @@ class InterData():
                 rtnData["message"] = "查询会员消费失败：{name}数据库[{db}]连接失败".format(name=self.sett.serverName, db=self.sett.serverDb)
             else:
                 lsSql = r"select '欢乐谷出口小商店消费', CardCost, operDate, ActualPayamt from VipCostList " \
-                        r"where CardId = '{cardId}' and convert(char(10), OperDate, 120) between '{startDate}' and '{endDate}'".format(
+                        r"where CardId = '{cardId}' and convert(char(10), OperDate, 120) between '{startDate}' and '{endDate}' " \
+                        r"and CardWay in ('充值','消费','退单','预扣','预扣还款','设定金额','挂账付款')".format(
                     cardId=data["Id"],
                     startDate=data["startDate"],
                     endDate=data["endDate"]
