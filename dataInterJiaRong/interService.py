@@ -59,7 +59,7 @@ def getToken():
     """
     从微信端获取access token
     """
-    import urllib
+    import urllib.request
     import json
     url = r"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wx34a7860ad3af92e4&secret=1f2a0d5d4e266673c443f739c3826672"
     response = urllib.request.urlopen(url)
