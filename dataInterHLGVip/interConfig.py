@@ -37,6 +37,7 @@ class Settings():
         # 业务控制
         self.vipClass = config.get("business", "vipclass")          # 默认会员类别
         self.branchNo = config.get("business", "branchNo")          # 默认会员类别
+        self.rptTitle = config.get("business", "rptTitle")          # 报表数据标题
 
     def _getLogger(self):
         logger = logging.getLogger("[DataInterCatering]")

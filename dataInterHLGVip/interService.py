@@ -38,9 +38,19 @@ def setVIPInfo():
     """
     推送会员信息
     """
-    paras = json.loads(request.get_data(as_text=True))
-    rtn = data.setVIPInfo(paras)
-    return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
+    rst = {
+        "status": 0,
+        "message": ""
+    }
+    try:
+        parab = json.loads(request.get_data(as_text=True))
+        rst = data.securityVerify(request.headers, parab)
+        if rst["status"] != 1:
+            raise Exception(rst["message"])
+        rst = data.setVIPInfo(parab)
+    except Exception as e:
+        rst["message"] = "错误：{info}".format(info=str(e))
+    return json.dumps(rst, cls=MyJSONEncoder, ensure_ascii=False)
 
 
 @server.route('/setVIPCode', methods=['post'])
@@ -48,9 +58,19 @@ def setVIPCode():
     """
     推送会员动态二维码
     """
-    paras = json.loads(request.get_data(as_text=True))
-    rtn = data.setVIPCode(paras)
-    return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
+    rst = {
+        "status": 0,
+        "message": ""
+    }
+    try:
+        parab = json.loads(request.get_data(as_text=True))
+        rst = data.securityVerify(request.headers, parab)
+        if rst["status"] != 1:
+            raise Exception(rst["message"])
+        rst = data.setVIPCode(parab)
+    except Exception as e:
+        rst["message"] = "错误：{info}".format(info=str(e))
+    return json.dumps(rst, cls=MyJSONEncoder, ensure_ascii=False)
 
 
 @server.route('/queryBills', methods=['post'])
@@ -58,9 +78,19 @@ def queryBills():
     """
     查询会员消费
     """
-    paras = json.loads(request.get_data(as_text=True))
-    rtn = data.queryBills(paras)
-    return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
+    rst = {
+        "status": 0,
+        "message": ""
+    }
+    try:
+        parab = json.loads(request.get_data(as_text=True))
+        rst = data.securityVerify(request.headers, parab)
+        if rst["status"] != 1:
+            raise Exception(rst["message"])
+        rst = data.queryBills(parab)
+    except Exception as e:
+        rst["message"] = "错误：{info}".format(info=str(e))
+    return json.dumps(rst, cls=MyJSONEncoder, ensure_ascii=False)
 
 
 if __name__ == '__main__':
