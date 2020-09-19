@@ -96,8 +96,8 @@ class InterData():
                         sBirthday = '1990-01-01 00:00:00.000'
                 else:
                     sBirthday = '1990-01-01 00:00:00.000'
-                lsSql = r"insert into Vip ( Id, VipClsId, CardFlag, OriginalId, IdentityCardId, Status, BeginDate, EndDate, BranchId, SendDate, Name, Sex, Mobile, Birthday, Deposit, Dues, TotalConsTimes, TotalConsAmt, TotalIntegral, Integral, RechargingAmt, Balance, EncryptBalance, IntegralFlag, OperId, OperDate, SendMan, CardSendFlag, BackFlag, CardMakeFlag, IsSync ) " \
-                        r"values ( '{vipId}', '{VipClsId}', 'O', '{vipId}', '{IdentityCardId}', '0', '{BeginDate}', '{EndDate}', '{branchno}', '{sDate}', '{vipName}', '男', '{Mobile}', '{Birthday}', 0.00, 0.00, 0, 0.00, 0.00, 0.00, 0.00, 0.00, 'CJ;=D538CL;=', '1', '0000', '{sDate}', '0000', '1', '1', '1', '1' )" \
+                lsSql = r"insert into Vip ( Id, VipClsId, CardFlag, OriginalId, IdentityCardId, Status, BeginDate, EndDate, BranchId, SendDate, Name, Sex, Mobile, Email, Birthday, Deposit, Dues, TotalConsTimes, TotalConsAmt, TotalIntegral, Integral, RechargingAmt, Balance, EncryptBalance, IntegralFlag, OperId, OperDate, SendMan, CardSendFlag, BackFlag, CardMakeFlag, IsSync ) " \
+                        r"values ( '{vipId}', '{VipClsId}', 'O', '{vipId}', '{IdentityCardId}', '0', '{BeginDate}', '{EndDate}', '{branchno}', '{sDate}', '{vipName}', '男', '{Mobile}', '{Mobile}', '{Birthday}', 0.00, 0.00, 0, 0.00, 0.00, 0.00, 0.00, 0.00, 'CJ;=D538CL;=', '1', '0000', '{sDate}', '0000', '1', '1', '1', '1' )" \
                         r"".format(
                     vipId=data["Id"],
                     VipClsId=self.sett.vipClass,
@@ -139,9 +139,9 @@ class InterData():
             if not cur:
                 raise Exception("同步会员动态二维码失败：{name}数据库[{db}]连接失败".format(name=self.sett.serverName, db=self.sett.serverDb))
             # 存入新表：门店、营业日期、单据号、手机号、积分标志
-            lsSql = r"update Vip set OriginalId='{OriginalId}' where Id='{vipId}'".format(
+            lsSql = r"update Vip set Mobile='{Qrcode}' where Id='{vipId}'".format(
                 vipId=data["Id"],
-                OriginalId=data["Qrcode"]
+                Qrcode=data["Qrcode"]
             )
             cur.execute(lsSql)
             conn.commit()
