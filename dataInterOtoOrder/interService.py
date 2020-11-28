@@ -1,123 +1,109 @@
 # -*- coding:utf-8 -*-
 """
-flask框架实现数据接口服务
-数据返回格式：
-rtnData = {
-    "result":True,                  # 逻辑控制 True/False
-    "dataString":"",               # 字符串
-    "dataNumber":1,                # 数字
-    "info":"",                      # 信息
-    "entities": {                   # 表体集
-        "bill":[],                   # 销售单
-        "billItem":[],               # 销售单
-        "billPay":[]                 # 销售单
-    }
-}
 """
 __author__ = "Cliff.wang"
-import json
-from flask import Flask, request
+
+import win32serviceutil
+import win32service
+import win32event
+import os
+import sys
+import inspect
 from interConfig import Settings
-from interData import InterData
-from myTools import MyJSONEncoder
-# from flask_apscheduler import APScheduler
+from interControl import InterControl
+import win32timezone        #打包需要
 
-class Config(object):
-    # 任务列表
-    JOBS = [
-        {
-            'id': 'jobHandleScore',
-            'func': '__main__:handleScore',
-            'trigger': 'interval',
-            'seconds': 60,
-        }
-    ]
 
-sett = Settings()
-data = InterData(sett)
-server = Flask(__name__)
-# server.config.from_object(Config())
-
-def handleScore():
-    data.handleScore()
-
-@server.route('/', methods=['get', 'post'])
-def home():
-    return "这里是云蝶餐饮数据服务接口"
-
-@server.route('/queryToken', methods=['get'])
-def queryToken():
+class DataInterCatering(win32serviceutil.ServiceFramework):
     """
-    查询access token
+    #1.安装服务
+    python tmpService.py install
+    #2.让服务自动启动
+    python tmpService.py --startup auto install
+    #3.启动服务
+    python tmpService.py start
+    #4.重启服务
+    python tmpService.py restart
+    #5.停止服务
+    python tmpService.py stop
+    #6.删除/卸载服务
+    python tmpService.py remove
     """
-    rtn = data.queryToken()
 
-    return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
+    _svc_name_ = "YunTongO2O"
+    _svc_display_name_ = "Data interface of YunTong"
+    _svc_description_ = "This is a data interface of YunTong."
 
-@server.route('/getToken', methods=['get'])
-def getToken():
-    """
-    从微信端获取access token
-    """
-    import urllib.request
-    import json
-    url = r"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wx34a7860ad3af92e4&secret=1f2a0d5d4e266673c443f739c3826672"
-    response = urllib.request.urlopen(url)
-    return response.read().decode()
+    def __init__(self, args):
+        win32serviceutil.ServiceFramework.__init__(self, args)
+        self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
+        self.sett = Settings()
+        try:
+            self.inter = InterControl(self.sett)
+        except Exception as e:
+            sError = str(e)
+            self.sett.logger.error(sError)
 
-@server.route('/queryBillList', methods=['get'])
-def queryBillList():
-    """
-    查询单据列表
-    """
-    lsStatus = request.args.get("status").strip()
-    rtn = data.queryBillList(int(lsStatus))
+    def SvcDoRun(self):
+        import schedule
+        import time
 
-    return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
+        self.sett.logger.info("service is running...")
 
-@server.route('/callSoundTaking', methods=['get'])
-def callSoundTaking():
-    """
-    呼叫取餐
-    """
-    lsBill = request.args.get("billNo").strip()
-    rtn = data.callSoundTaking(lsBill)
+        try:
+            self.inter.interInit()
+        except Exception as e:
+            sError = str(e)
+            self.sett.logger.error(sError)
+        else:
+            sException = []
+            self.sett.logger.info("同步基础资料...")
+            self.inter.interBaseData()
+            self.sett.logger.info("同步基础资料完成.")
+            try:
+                if self.sett.timingBaseTime != "00:00":
+                    schedule.every().day.at(self.sett.timingBaseTime).do(self.inter.interBaseData)
+                if self.sett.timingBaseInterval > 0:
+                    schedule.every(self.sett.timingBaseInterval).minutes.do(self.inter.interBaseData)
+                if self.sett.timingBaseInterval > 0:
+                    schedule.every().day.at(self.sett.timingBusiTime).do(self.inter.interBusiData)
+                if self.sett.timingBaseTime != "00:00":
+                    schedule.every(self.sett.timingBusiInterval).minutes.do(self.inter.interBusiData)
+            except Exception as e:
+                sError = str(e)
+                self.sett.logger.error(sError)
+            while self.sett.run:
+                if not self.sett.processing:
+                    try:
+                        self.sett.processing = True
+                        schedule.run_pending()
+                    except Exception as e:
+                        sError = str(e)
+                        if sError not in sException:
+                            self.sett.logger.error(sError)
+                            sException.append(sError)
+                    finally:
+                        self.sett.processing = False
+                time.sleep(1)
 
-    return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
+    def SvcStop(self):
+        self.sett.logger.info("service is stoped.")
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        win32event.SetEvent(self.hWaitStop)
+        self.sett.run = False
 
-@server.route('/callWXTaking', methods=['get'])
-def callWXTaking():
-    """
-    公众号取餐通知
-    """
-    lsBill = request.args.get("billNo").strip()
-    rtn = data.callWXTaking(lsBill)
 
-    return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
-
-@server.route('/setVipPhone', methods=['post'])
-def setVipPhone():
-    """
-    设置单据的会员手机号
-    """
-    lsBill = request.form.get("billNo").strip()
-    lsPhone = request.form.get("phoneNumber").strip()
-    rtn = data.setVipPhone(lsBill, lsPhone)
-
-    return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
-
-@server.route('/queryMealNumber', methods=['get'])
-def queryMealNumber():
-    """
-    返回订单列表
-    订单号、桌台名称、人数、金额、取餐号
-    """
-    rtn = data.queryMealNumber()
-
-    return json.dumps(rtn, cls=MyJSONEncoder, ensure_ascii=False)
-
-if __name__ == '__main__':
-    # scheduler = APScheduler()
-    # scheduler.init_app(server)
-    # scheduler.start()
-    server.run(host=sett.webHost, port=sett.webPort, debug=True)
+if __name__ == "__main__":
+    import servicemanager
+    if len(sys.argv) == 1:
+        try:
+            evtsrc_dll = os.path.abspath(servicemanager.__file__)
+            servicemanager.PrepareToHostSingle(DataInterCatering)
+            servicemanager.Initialize("DataInterCatering", evtsrc_dll)
+            servicemanager.StartServiceCtrlDispatcher()
+        except win32service.error as details:
+            import winerror
+            if details == winerror.ERROR_FAILED_SERVICE_CONTROLLER_CONNECT:
+                win32serviceutil.usage()
+    else:
+        win32serviceutil.HandleCommandLine(DataInterCatering)

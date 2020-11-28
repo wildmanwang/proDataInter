@@ -1,0 +1,40 @@
+1 商品类别表comtype
+comtypeid	    代码	    char(8)	        举例：010101
+comtypename	    名称	    varchar(30)
+typeflag	    层级	    char(1)	        举例：3
+firstid	        一级类	char(8)	        举例：01
+secondid	    二级类	char(8)	        举例：0101
+thirdid	        三级类	char(8)	        举例：010101
+vipdisc	        会员折扣	decimal(5, 4)	举例：1.00
+flag	        状态	    char(1)	        Y/N
+2 商品表plu(plupos)
+comid	        代码	    char(8)
+comname	        名称	    varchar(60)
+shortcomname	简称	    varchar(10)
+barcode	        条码	    varchar(20)
+plantid	        助记码	varchar(20)
+comtype	        商品类别	char(8)	        商品类别表
+unit	        单位	    varchar(12)
+standards	    规格	    varchar(20)
+package	        包装	    varchar(20)
+trademark	    品牌	    varchar(20)
+producer	    产地	    varchar(30)
+ispiece	        计价方式	char(4)	        计量/计件
+saletaxrate	    销售税率	decimal(6, 5)	举例：0.17
+saleprice	    售价	    decimal(15, 4)
+vipprice	    会员价	decimal(15, 4)
+vipdisc	        折扣率	decimal(5, 4)	1.00
+remark	        备注	    varchar(500)
+saletype	    销售类型	varchar(4)	    专柜/代销/购销
+status	        状态	    char(1)	        （线下判断）
+3 线上订单表orderselfapp
+status          状态	    varchar(20)     USERPAYING  待付款
+                                        CHECKING    待核验
+                                        CLOSE       已取消
+                                        REFUNDING   退款中
+                                        REFUND      已退款
+                                        SUCCESS     交易成功
+                                        REFUND_DEL  退款成功后删除
+                                        SUCCESS_DEL 交易成功后已删除
+                                        CLOSE_DEL	取消付款后删除
+                                        DEL         该状态需通过当前订单状态判断改为具体的删除状态(REFUND_DEL，SUCCESS_DEL，CLOSE_DEL)

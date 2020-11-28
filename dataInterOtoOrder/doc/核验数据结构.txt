@@ -1,0 +1,48 @@
+select * from paystyle          --支付方式
+select * from plupos            --销售商品
+
+--线上订单
+select * from orderselfapp where orderselfapp.codeid='002000000132610026'
+select * from ordercomselfapp where ordercomselfapp.orderid = '002000000132'
+select * from orderpayselfapp WHERE orderpayselfapp.orderid = '002000000132'
+
+select * from selfapp_promotionlog
+select * from posmessager
+
+--数据从promotionlog00转移到promotionlog
+execute p_selfapp_log_wf @saleid ='002000000132' , @posid ='17' , @seller ='1111' , @sellername ='王大平'
+--插入会员消费流水
+Insert Into vip1sale values ( '66006699' , '00021509' , 0.1000 , '2020-8-14 11:9:47.854' , 1.00000000 )
+--更新订单状态、金额
+execute p_selfapp_modifyorder @deptid ='01' , @orderid ='002000000132' , @status ='SUCCESS' , @payedfee =null , @paytime =null , @codeid =null , @outtradeno =null , @paytyle =null
+
+--线下销售单
+INSERT INTO salemain ( deptid, saleid, posid, saledate, seller, sellername, vipid, discmanid, totalsale, totaldisc ) VALUES ( '01', '002000000132', '17', '2020-8-14 11:9:47.900', '1111', '王大平', '66006699', '', 0.1000, 0.0000 )
+INSERT INTO salecom ( deptid, saleid, salecomno, saledate, warehouseid, warehouse, vendorid, comid, comtype, saleprice, saledisc, quantity, subdisc, subsale, remark, stuffid ) VALUES ( '01', '002000000132', 1, '2020-8-14 11:9:7.853', '01', '商场', '2999', '00021509', '040211', 0.1000, 1.0000, 1.0000, 0.0000, 0.1000, '60001', '' )
+INSERT INTO salepay ( deptid, saleid, salepayno, seller, sellername, saledate, paystyle, paystyleno, currency, exchangerate, pay, payrmb ) VALUES ( '01', '002000000132', -1, '1111', '王大平', '2020-8-14 11:9:7.883', '微信支付', 'H{"R":"支付成功","T":"1","I":"4200000576202008147051206947","TF":"0.1000","BF":"0.1000"}', '人民币', 1.00000000, 0.1000, 0.1000 )
+
+--插入会员/打包商品销售差价
+execute p_scdiff_wf @saleid ='002000000132' , @deptid ='01' , @salecomno =1 , @comid ='00021509' , @saleprice =0.1000 , @quantity =1.0000 , @vendorid ='2999' , @remark ='60001' , @oldsaleprice =0.1000 , @vipid ='66006699' , @flag ='正常' , @sctype ='会员'
+--积分处理
+execute p_msetvipi2_wf @saleid ='002000000132' , @vipid ='66006699' , @level =0
+--兑换处理
+execute dbo.p_hzprn_wf @saleid = '002000000132'
+select * from vipcopstemp
+select * from totalinterest
+
+数据流：
+-》线上点单，生成线上订单
+-》定时下载，生成线下订单
+-》线下核验，检查线下订单状态
+-》生成促销操作
+-》生成会员销售记录
+-》更新线下订单状态
+-》生成销售单
+-》生成会员销售差价记录
+-》会员积分处理
+-》商品操作（兑换等）
+
+接口操作：
+1 基础资料上传-》商品类别、商品
+2 线上订单下载-》orderselfapp、ordercomselfapp、orderpayselfapp，状态：待核验
+3 线下商品核销
