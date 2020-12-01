@@ -34,6 +34,20 @@ class BusiProcess():
         self.interConn["password"] = self.sett.serverPwd
         self.interConn["database"] = self.sett.serverDb
 
+    def interInit(self):
+        """
+        初始化
+        """
+        rtnData = {
+            "result": True,  # 逻辑控制 True/False
+            "dataString": "",  # 字符串
+            "dataNumber": 1,  # 数字
+            "info": "",  # 信息
+            "entities": {}
+        }
+
+        return rtnData
+
     def getItems(self, itemNo):
         """
         获取商品列表

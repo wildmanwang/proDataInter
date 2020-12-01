@@ -57,7 +57,7 @@ class Settings():
         # [businessLogic]
         self.defaultOrgNo = config.get("businessLogic", "defaultOrgNo")  # 默认机构编码
         self.defaultOrgName = config.get("businessLogic", "defaultOrgName")  # 默认机构名称
-        self.defaultPayType = config.get("businessLogic", "defaultPayType")  # 默认线上支付方式
+        self.pickupDelay = config.get("businessLogic", "pickupDelay")  # 支付后多少分钟可以提货
 
         # 状态
         self.run = True

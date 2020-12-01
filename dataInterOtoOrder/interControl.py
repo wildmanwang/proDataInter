@@ -50,59 +50,6 @@ class InterControl():
         self.sett.logger.info("控制端数据对象初始化成功")
         self.interInit()
 
-    def interInit(self):
-        """
-        控制初始化
-        :return:
-        """
-        # 获取数据库连接
-        conn = self.db.GetConnect()
-        cur = conn.cursor()
-        if not cur:
-            raise Exception("初始化失败：控制数据库[{db}]连接失败".format(db=self.interConn["database"]))
-
-        # 创建参数表
-        lsSql = r"select 1 from sysobjects where xtype = 'U' and id = OBJECT_ID('busiParas')"
-        cur.execute(lsSql)
-        rs = cur.fetchall()
-        if len(rs) == 0:
-            lsSql = r"create table busiParas ( " \
-                    r"  sCode           varchar(50) not null, " \
-                    r"  sName           varchar(50) not null, " \
-                    r"  sValue          varchar(50) null, " \
-                    r"  sRemark         varchar(60) null " \
-                    r"  primary key ( sCode ) ) "
-            cur.execute(lsSql)
-            dTo = datetime.datetime.now()
-            sTo = datetime.datetime.strftime(dTo, "%Y-%m-%d") + " 00:00:00"
-            lsSql = r"insert into busiParas ( sCode, sName, sValue, sRemark ) values ( 'order_downline', '订单下载截至时间', '{sTime}', '')".format(
-                sTime=sTo
-            )
-            cur.execute(lsSql)
-            conn.commit()
-
-        # 创建对接数据控制表
-        lsSql = r"select 1 from sysobjects where xtype = 'U' and id = OBJECT_ID('InterCompleted')"
-        cur.execute(lsSql)
-        rs = cur.fetchall()
-        if len(rs) == 0:
-            lsSql = r"create table InterCompleted ( " \
-                    r"  cID             int not null IDENTITY(1,1), " \
-                    r"  busiType        varchar(50) not null, " \
-                    r"  dataType        varchar(50) not null, " \
-                    r"  sNumber         varchar(60) null, " \
-                    r"  iNumber         bigint null, " \
-                    r"  sRelated        varchar(60) not null, " \
-                    r"  sName           varchar(100) not null, " \
-                    r"  sBranch         varchar(20) not null, " \
-                    r"  sTime           varchar(19) not null, " \
-                    r"  primary key ( cID ) ) "
-            cur.execute(lsSql)
-
-        # 提交事务，关闭连接
-        conn.commit()
-        conn.close()
-
     def _getPara(self, sCode):
         """
         获取参数
@@ -170,6 +117,93 @@ class InterControl():
             rtnData["info"] = str(e)
 
         return rtnData
+
+    def _getSign(self, pData):
+        """
+        获取接口签名
+        """
+        rtnData = {
+            "result": True,  # 逻辑控制 True/False
+            "dataString": "",  # 字符串
+            "dataNumber": 1,  # 数字
+            "info": "",  # 信息
+        }
+        import hashlib
+
+        try:
+            lPara = sorted(pData.items(), key=lambda x: x[0]) # 字典有两层，处理排序错误
+            sSource = ""
+            for gitem in lPara:
+                if len(sSource) > 0:
+                    sSource += "&"
+                if gitem[0] == "price":
+                    sSource += 'price={"price":' + str(gitem[1]["price"])
+                    sSource += ',"original_price":' + str(gitem[1]["original_price"]) + "}"
+                else:
+                    sSource += str(gitem[0]) + "=" + str(gitem[1])
+            sSource += "&appsecret=" + self.sett.appsecret
+            sSign = hashlib.md5(sSource.encode(encoding='UTF-8')).hexdigest()
+            sSign = sSign.upper()
+            rtnData["dataString"] = sSign
+        except Exception as e:
+            rtnData["result"] = False
+            rtnData["info"] = str(e)
+
+        return rtnData
+
+    def interInit(self):
+        """
+        控制初始化
+        :return:
+        """
+        # 获取数据库连接
+        conn = self.db.GetConnect()
+        cur = conn.cursor()
+        if not cur:
+            raise Exception("初始化失败：控制数据库[{db}]连接失败".format(db=self.interConn["database"]))
+
+        # 创建参数表
+        lsSql = r"select 1 from sysobjects where xtype = 'U' and id = OBJECT_ID('busiParas')"
+        cur.execute(lsSql)
+        rs = cur.fetchall()
+        if len(rs) == 0:
+            lsSql = r"create table busiParas ( " \
+                    r"  sCode           varchar(50) not null, " \
+                    r"  sName           varchar(50) not null, " \
+                    r"  sValue          varchar(50) null, " \
+                    r"  sRemark         varchar(60) null " \
+                    r"  primary key ( sCode ) ) "
+            cur.execute(lsSql)
+            dTo = datetime.datetime.now()
+            sTo = datetime.datetime.strftime(dTo, "%Y-%m-%d") + " 00:00:00"
+            lsSql = r"insert into busiParas ( sCode, sName, sValue, sRemark ) values ( 'order_downline', '订单下载截至时间', '{sTime}', '')".format(
+                sTime=sTo
+            )
+            cur.execute(lsSql)
+            conn.commit()
+
+        # 创建对接数据控制表
+        lsSql = r"select 1 from sysobjects where xtype = 'U' and id = OBJECT_ID('InterCompleted')"
+        cur.execute(lsSql)
+        rs = cur.fetchall()
+        if len(rs) == 0:
+            lsSql = r"create table InterCompleted ( " \
+                    r"  cID             int not null IDENTITY(1,1), " \
+                    r"  busiType        varchar(50) not null, " \
+                    r"  dataType        varchar(50) not null, " \
+                    r"  sNumber         varchar(60) null, " \
+                    r"  iNumber         bigint null, " \
+                    r"  sRelated        varchar(60) not null, " \
+                    r"  sName           varchar(100) not null, " \
+                    r"  sBranch         varchar(20) not null, " \
+                    r"  sTime           varchar(19) not null, " \
+                    r"  iStatus         tinyint not null, " \
+                    r"  primary key ( cID ) ) "
+            cur.execute(lsSql)
+
+        # 提交事务，关闭连接
+        conn.commit()
+        conn.close()
 
     def getDataCompleted(self, sType, sBranch, sFrom, sTo):
         """
@@ -268,8 +302,8 @@ class InterControl():
                 cur.execute(lsSql)
                 rsTmp = cur.fetchall()
                 if len(rsTmp) == 0:
-                    lsSql = r"insert into InterCompleted ( busiType, dataType, sNumber, iNumber, sRelated, sName, sBranch, sTime ) " \
-                        r"values ( '{busiType}', '{dataType}', '{sNumber}', {iNumber}, '{sRelated}', '{sName}', '{sBranch}', '{sTime}' ) " \
+                    lsSql = r"insert into InterCompleted ( busiType, dataType, sNumber, iNumber, sRelated, sName, sBranch, sTime, iStatus ) " \
+                        r"values ( '{busiType}', '{dataType}', '{sNumber}', {iNumber}, '{sRelated}', '{sName}', '{sBranch}', '{sTime}', {iStatus} ) " \
                         r"".format(
                             busiType=k["type"],
                             dataType=dataType,
@@ -278,7 +312,8 @@ class InterControl():
                             sRelated=k["related"],
                             sName=k["name"],
                             sBranch=self.sett.defaultOrgNo,
-                            sTime=k["time"]
+                            sTime=k["time"],
+                            iStatus=k["status"]
                         )
                     cur.execute(lsSql)
                     rtnData["entities"][i].append(k)
@@ -370,7 +405,7 @@ class InterControl():
             rtnTmp = self._getPara("order_downline")
             if rtnTmp["result"]:
                 sFrom = rtnTmp["dataString"]
-                # 本次下载订单截至时间
+                # 本次下载订单截至时间 新接口不用这个参数
                 dTo = datetime.datetime.now() - datetime.timedelta(minutes=1)
                 sTo = datetime.datetime.strftime(dTo, "%Y-%m-%d %H:%M:%S")
             else:
@@ -380,13 +415,13 @@ class InterControl():
 
         # 取出数据
         if bContinue:
-            getData = self.getOrders(sFrom, sTo)
+            getData = self.getOrders(sFrom)
             if getData["result"]:
-                pass
+                sTo = getData["dataString"]
             else:
                 bContinue = False
                 rtnData["result"] = False
-                rtnData["info"] = rtnTmp["info"]
+                rtnData["info"] = getData["info"]
 
         # 获取已对接的数据
         if bContinue:
@@ -406,7 +441,9 @@ class InterControl():
             if len(getData["entities"]["order"]) > 0:
                 # 保存数据
                 putData = self.front.putOrders(getData)
-                if not putData["result"]:
+                if putData["result"]:
+                    sTo = putData["dataString"]
+                else:
                     bContinue = False
                     rtnData["result"] = False
                     rtnData["dataNumber"] = len(putData["entities"]["order"])
@@ -436,36 +473,120 @@ class InterControl():
 
         return rtnData
 
-    def _getSign(self, pData):
+    def interOrderFeedback(self):
         """
-        获取接口签名
+        已提货订单状态更新到线上
         """
         rtnData = {
             "result": True,  # 逻辑控制 True/False
             "dataString": "",  # 字符串
-            "dataNumber": 1,  # 数字
+            "dataNumber": 0,  # 数字
             "info": "",  # 信息
+            "entities": {
+                "order": []
+            }
         }
-        import hashlib
+        bContinue = True
 
-        try:
-            lPara = sorted(pData.items(), key=lambda x: x[0]) # 字典有两层，处理排序错误
-            sSource = ""
-            for gitem in lPara:
-                if len(sSource) > 0:
-                    sSource += "&"
-                if gitem[0] == "price":
-                    sSource += 'price={"price":' + str(gitem[1]["price"])
-                    sSource += ',"original_price":' + str(gitem[1]["original_price"]) + "}"
-                else:
-                    sSource += str(gitem[0]) + "=" + str(gitem[1])
-            sSource += "&appsecret=" + self.sett.appsecret
-            sSign = hashlib.md5(sSource.encode(encoding='UTF-8')).hexdigest()
-            sSign = sSign.upper()
-            rtnData["dataString"] = sSign
-        except Exception as e:
+        # 获取数据库连接
+        conn = self.db.GetConnect()
+        cur = conn.cursor()
+        if not cur:
+            bContinue = False
             rtnData["result"] = False
-            rtnData["info"] = str(e)
+            rtnData["info"] = "业务数据对接失败：控制数据库[{db}]连接失败".format(db=self.interConn["database"])
+
+        if bContinue:
+            lsSql = r"select sRelated from InterCompleted where busiType = 'order' and iStatus = 0"
+            cur.execute(lsSql)
+            dsOrder = cur.fetchall()
+            dsPickup = self.front.getPickupOrder(dsOrder)
+            for line in dsPickup["entities"]["order"]:
+                pCondition = {
+                    "pickup_code": line[1]
+                }
+                rtnTmp = self._getSign(pCondition)
+                if rtnTmp["result"]:
+                    sSign = rtnTmp["dataString"]
+                else:
+                    raise Exception(rtnTmp["info"])
+                sUrl = "{url}/trade/sale/order/pickup/start?app_id={app_id}&sign={sign}".format(
+                    url=self.sett.interUrl,
+                    app_id=self.sett.appid,
+                    sign=sSign
+                )
+                import requests
+                headers = {'Content-Type': 'application/json'}
+                res = requests.post(url=sUrl, headers=headers, json=pCondition)
+                res = json.loads(res.text)
+                if res["code"] != "10000":
+                    if res["message"] != "订单已提货":
+                        rtnData["result"] = False
+                        rtnData["info"] = res["message"]
+                        break
+                lsSql = r"update InterCompleted set iStatus=1 where busiType='order' and sRelated='{sRelated}'".format(
+                    sRelated=line[0]
+                )
+                cur.execute(lsSql)
+                conn.commit()
+                rtnData["dataNumber"] += 1
+                rtnData["entities"]["order"].append(line[0])
+
+        # 关闭连接
+        conn.close()
+
+        return rtnData
+
+    def interStock(self):
+        """
+        更新库存
+        """
+        rtnData = {
+            "result": True,  # 逻辑控制 True/False
+            "dataString": "",  # 字符串
+            "dataNumber": 0,  # 数字
+            "info": "",  # 信息
+            "entities": {
+                "item": []
+            }
+        }
+        bContinue = True
+
+        rtnStock = self.front.getStock()
+        iNum = 0
+        if rtnStock["result"]:
+            for line in rtnStock["entities"]["item"]:
+                pItems = {
+                    "out_goods_id": line["comid"],
+                    "goods_name": line["comname"].encode("latin1").decode("gbk"),
+                    "stock": 1,
+                }
+                rtnTmp = self._getSign(pItems)
+                if rtnTmp["result"]:
+                    sSign = rtnTmp["dataString"]
+                else:
+                    raise Exception(rtnTmp["info"])
+                sUrl = "{url}/mch/goods/upload?app_id={app_id}&sign={sign}".format(
+                    url=self.sett.interUrl,
+                    app_id=self.sett.appid,
+                    sign=sSign
+                )
+                import requests
+                headers = {'Content-Type': 'application/json'}
+                res = requests.post(url=sUrl, headers=headers, json=pItems)
+                res = json.loads(res.text)
+                if res["code"] == "10000":
+                    rtnData["entities"]["item"].append(line["comid"])
+                    iNum += 1
+                else:
+                    rtnData["result"] = False
+                    rtnData["info"] = res["message"]
+                    break
+
+        rtnData["info"] += "上传了{num}/{cnt}商品".format(
+            num=iNum,
+            cnt=len(rtnStock["entities"]["item"])
+        )
 
         return rtnData
 
@@ -488,7 +609,7 @@ class InterControl():
         for line in putData["entities"]["item"]:
             pItems = {
                 "out_goods_id":     line["out_goods_id"],
-                "goods_name":       line["goods_name"],
+                "goods_name":       line["goods_name"].encode("latin1").decode("gbk"),
                 "logo":             line["logo"],
                 "master_picture":   line["master_picture"],
                 "pictures":         line["pictures"],
@@ -535,7 +656,8 @@ class InterControl():
                     "code": line["out_goods_id"],
                     "related": res["data"]["goods_id"],
                     "name": line["goods_name"],
-                    "time": datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d %H:%M:%S")
+                    "time": datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d %H:%M:%S"),
+                    "status": 1
                 })
                 iNum += 1
             else:
@@ -543,14 +665,14 @@ class InterControl():
                 rtnData["info"] = res["message"]
                 break
 
-        rtnData["info"] += "上传了{num}/{cnt}商品".format(
+        rtnData["info"] += "更新了{num}/{cnt}库存".format(
             num=iNum,
             cnt=iCnt
         )
 
         return rtnData
 
-    def getOrders(self, sFrom, sTo):
+    def getOrders(self, sFrom):
         """
         获取线上订单
         """
@@ -571,18 +693,14 @@ class InterControl():
             pCondition = {
                 "page": iPage,
                 "pageSize": 100,
-                "startTime": sFrom,
-                "endTime": sTo,
-                "searchWord": "",
-                "searchKey": "",
-                "order": "order_id asc"
+                "date": sFrom
             }
             rtnTmp = self._getSign(pCondition)
             if rtnTmp["result"]:
                 sSign = rtnTmp["dataString"]
             else:
                 raise Exception(rtnTmp["info"])
-            sUrl = "{url}/trade/sale/order/list?app_id={app_id}&sign={sign}".format(
+            sUrl = "{url}/trade/sale/order/pickup/offline?app_id={app_id}&sign={sign}".format(
                 url=self.sett.interUrl,
                 app_id=self.sett.appid,
                 sign=sSign
@@ -603,6 +721,7 @@ class InterControl():
 
         if len(rtnData["entities"]["order"]) > 0:
             dsItems = self.getDataCompleted("item", self.sett.defaultOrgNo, "", "")
+        # 获取最大【发货开始】时间
         for bill in rtnData["entities"]["order"]:
             for goods in bill["goodses"]:
                 sOnline = goods["goods_id"]
@@ -612,6 +731,8 @@ class InterControl():
                 else:
                     raise Exception("小程序商品[{code}-{name}]在POS中找不到对应的商品.".format(code=sOnline, name=goods["goods_name"]))
                 goods["related"] = sOffline
+            if len(bill["goodses"]) > 0 and bill["deliver_start_time"] > rtnData["dataString"]:
+                rtnData["dataString"] = bill["deliver_start_time"]
 
         return rtnData
 
@@ -621,10 +742,12 @@ if __name__ == "__main__":
     try:
         sett = Settings()
         inter = InterControl(sett)
-        # rtn = inter.front.getItems()                  # OK
+        # rtn = inter.front.getItems("")                  # OK
         # rtn = inter.putItems(rtn)                     # OK
         # rtn = inter.interBaseData()                     # OK
-        rtn = inter.interBusiData()
+        # rtn = inter.interBusiData()                   # OK
+        # rtn = inter.interOrderFeedback()              # OK
+        rtn = inter.interStock()
         i = 1
         i += 1
     except Exception as e:
