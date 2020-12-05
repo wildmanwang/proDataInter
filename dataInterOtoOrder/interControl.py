@@ -386,7 +386,7 @@ class InterControl():
         rtnData = {
             "result": True,  # 逻辑控制 True/False
             "dataString": "",  # 字符串
-            "dataNumber": 1,  # 数字
+            "dataNumber": 0,  # 数字
             "info": "",  # 信息
             "entities": {}
         }
@@ -441,12 +441,12 @@ class InterControl():
             if len(getData["entities"]["order"]) > 0:
                 # 保存数据
                 putData = self.front.putOrders(getData)
+                rtnData["dataNumber"] = len(putData["entities"]["order"])
                 if putData["result"]:
                     sTo = putData["dataString"]
                 else:
                     bContinue = False
                     rtnData["result"] = False
-                    rtnData["dataNumber"] = len(putData["entities"]["order"])
                     rtnData["info"] = rtnTmp["info"]
 
                 # 记录对接历史
@@ -742,12 +742,12 @@ if __name__ == "__main__":
     try:
         sett = Settings()
         inter = InterControl(sett)
-        # rtn = inter.front.getItems("")                  # OK
+        # rtn = inter.front.getItems("")                # OK
         # rtn = inter.putItems(rtn)                     # OK
-        # rtn = inter.interBaseData()                     # OK
+        # rtn = inter.interBaseData()                   # OK
         # rtn = inter.interBusiData()                   # OK
         # rtn = inter.interOrderFeedback()              # OK
-        rtn = inter.interStock()
+        # rtn = inter.interStock()                      # OK
         i = 1
         i += 1
     except Exception as e:

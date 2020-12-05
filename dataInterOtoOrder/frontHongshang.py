@@ -158,7 +158,7 @@ class FrontHongshang(BusiProcess):
         rtnData = {
             "result":True,                  # 逻辑控制 True/False
             "dataString":"",               # 字符串
-            "dataNumber":1,                # 数字
+            "dataNumber":0,                # 数字
             "info":"",                      # 信息
             "entities": {
                 "order": []

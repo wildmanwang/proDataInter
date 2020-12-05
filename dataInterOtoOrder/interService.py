@@ -57,18 +57,31 @@ class DataInterCatering(win32serviceutil.ServiceFramework):
             self.sett.logger.error(sError)
         else:
             sException = []
-            self.sett.logger.info("同步基础资料...")
+            self.sett.logger.info("同步商品资料...")
             self.inter.interBaseData()
-            self.sett.logger.info("同步基础资料完成.")
+            self.sett.logger.info("同步线上订单...")
+            self.inter.interBusiData()
+            self.sett.logger.info("同步订单状态...")
+            self.inter.interOrderFeedback()
+            self.sett.logger.info("同步商品库存...")
+            self.inter.interStock()
             try:
-                if self.sett.timingBaseTime != "00:00":
-                    schedule.every().day.at(self.sett.timingBaseTime).do(self.inter.interBaseData)
-                if self.sett.timingBaseInterval > 0:
-                    schedule.every(self.sett.timingBaseInterval).minutes.do(self.inter.interBaseData)
-                if self.sett.timingBaseInterval > 0:
-                    schedule.every().day.at(self.sett.timingBusiTime).do(self.inter.interBusiData)
-                if self.sett.timingBaseTime != "00:00":
-                    schedule.every(self.sett.timingBusiInterval).minutes.do(self.inter.interBusiData)
+                if self.sett.timingItemTime != "--:--":
+                    schedule.every().day.at(self.sett.timingItemTime).do(self.inter.interBaseData)
+                if self.sett.timingItemInterval > 0:
+                    schedule.every(self.sett.timingItemInterval).minutes.do(self.inter.interBaseData)
+                if self.sett.timingOrderTime != "--:--":
+                    schedule.every().day.at(self.sett.timingOrderTime).do(self.inter.interBusiData)
+                if self.sett.timingOrderInterval > 0:
+                    schedule.every(self.sett.timingOrderInterval).minutes.do(self.inter.interBusiData)
+                if self.sett.timingFeedbackTime != "--:--":
+                    schedule.every().day.at(self.sett.timingFeedbackTime).do(self.inter.interOrderFeedback)
+                if self.sett.timingFeedbackInterval > 0:
+                    schedule.every(self.sett.timingFeedbackInterval).minutes.do(self.inter.interOrderFeedback)
+                if self.sett.timingStockTime != "--:--":
+                    schedule.every().day.at(self.sett.timingStockTime).do(self.inter.interStock)
+                if self.sett.timingStockInterval > 0:
+                    schedule.every(self.sett.timingStockInterval).minutes.do(self.inter.interStock)
             except Exception as e:
                 sError = str(e)
                 self.sett.logger.error(sError)

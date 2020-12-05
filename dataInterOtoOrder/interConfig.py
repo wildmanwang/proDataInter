@@ -10,9 +10,9 @@ class Settings():
 
     def __init__(self):
         # 获取编程环境下的代码路径
-        self.path = os.path.abspath(os.path.dirname(__file__))
+        # self.path = os.path.abspath(os.path.dirname(__file__))
         # 获取打包后的可执行文件路径
-        # self.path = os.path.dirname(sys.executable)
+        self.path = os.path.dirname(sys.executable)
 
         self.logger = self._getLogger()
 
@@ -48,11 +48,14 @@ class Settings():
         self.controlUser = config.get("controlEnd", "user")  # 控制端用户名
         self.controlPwd = config.get("controlEnd", "password")  # 控制端密码
         self.controlDb = config.get("controlEnd", "database")  # 控制端数据库名
-        self.timingBaseTime = config.get("controlEnd", "timingBaseTime")  # 数据传输间隔：分钟
-        self.timingBaseInterval = config.getint("controlEnd", "timingBaseInterval")  # 订单传输单据日期
-        self.timingBusiDay = config.getint("controlEnd", "timingBusiDay")  # 控制端数据库名
-        self.timingBusiTime = config.get("controlEnd", "timingBusiTime")  # 控制端数据库名
-        self.timingBusiInterval = config.getint("controlEnd", "timingBusiInterval")  # 控制端数据库名
+        self.timingItemTime = config.get("controlEnd", "timingItemTime")  # 商品传输时点
+        self.timingItemInterval = config.getint("controlEnd", "timingItemInterval")  # 商品传输间隔分钟
+        self.timingOrderTime = config.get("controlEnd", "timingOrderTime")  # 订单传输时点
+        self.timingOrderInterval = config.getint("controlEnd", "timingOrderInterval")  # 订单传输间隔分钟
+        self.timingFeedbackTime = config.get("controlEnd", "timingFeedbackTime")  # 订单回调时点
+        self.timingFeedbackInterval = config.getint("controlEnd", "timingFeedbackInterval")  # 订单回调间隔分钟
+        self.timingStockTime = config.get("controlEnd", "timingStockTime")  # 库存传输时点
+        self.timingStockInterval = config.getint("controlEnd", "timingStockInterval")  # 库存传输间隔分钟
 
         # [businessLogic]
         self.defaultOrgNo = config.get("businessLogic", "defaultOrgNo")  # 默认机构编码
