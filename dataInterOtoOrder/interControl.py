@@ -688,6 +688,7 @@ class InterControl():
 
         iPage = 0
         iCnt = 1
+        lOrder = []
         while iPage < iCnt:
             iPage += 1
             pCondition = {
@@ -711,7 +712,7 @@ class InterControl():
             res = json.loads(res.text)
             if res["code"] == "10000":
                 # 这里要分页接收数据
-                rtnData["entities"]["order"].extend(res["data"]["data"])
+                lOrder.extend(res["data"]["data"])
                 iPage = res["data"]["currentPage"]
                 iCnt = res["data"]["totalPages"]
             else:
@@ -719,20 +720,31 @@ class InterControl():
                 rtnData["info"] = res["message"]
                 break
 
-        if len(rtnData["entities"]["order"]) > 0:
+        if len(lOrder) > 0:
             dsItems = self.getDataCompleted("item", self.sett.defaultOrgNo, "", "")
         # 获取最大【发货开始】时间
-        for bill in rtnData["entities"]["order"]:
+        for bill in lOrder:
+            bErr = False
             for goods in bill["goodses"]:
                 sOnline = goods["goods_id"]
                 lFind =[line for line in dsItems["entities"]["item"] if line["related"] == sOnline]
                 if len(lFind) > 0:
                     sOffline = lFind[0]["code"]
                 else:
-                    raise Exception("小程序商品[{code}-{name}]在POS中找不到对应的商品.".format(code=sOnline, name=goods["goods_name"]))
+                    # raise Exception("小程序商品[{code}-{name}]在POS中找不到对应的商品.".format(code=sOnline, name=goods["goods_name"]))
+                    # 过滤掉线下没有商品的单
+                    sInfo = "同步订单[{order}]失败，线下找不到商品[{itemname}]".format(
+                        order=bill["order_id"],
+                        itemname=goods["goods_name"]
+                    )
+                    self.sett.logger.info(sInfo)
+                    bErr = True
+                    break
                 goods["related"] = sOffline
-            if len(bill["goodses"]) > 0 and bill["deliver_start_time"] > rtnData["dataString"]:
-                rtnData["dataString"] = bill["deliver_start_time"]
+            if not bErr:
+                if len(bill["goodses"]) > 0 and bill["deliver_start_time"] > rtnData["dataString"]:
+                    rtnData["dataString"] = bill["deliver_start_time"]
+                rtnData["entities"]["order"].append(bill)
 
         return rtnData
 
@@ -745,7 +757,7 @@ if __name__ == "__main__":
         # rtn = inter.front.getItems("")                # OK
         # rtn = inter.putItems(rtn)                     # OK
         # rtn = inter.interBaseData()                   # OK
-        # rtn = inter.interBusiData()                   # OK
+        rtn = inter.interBusiData()                   # OK
         # rtn = inter.interOrderFeedback()              # OK
         # rtn = inter.interStock()                      # OK
         i = 1
