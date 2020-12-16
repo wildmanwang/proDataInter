@@ -56,6 +56,7 @@ class Settings():
         self.timingFeedbackInterval = config.getint("controlEnd", "timingFeedbackInterval")  # 订单回调间隔分钟
         self.timingStockTime = config.get("controlEnd", "timingStockTime")  # 库存传输时点
         self.timingStockInterval = config.getint("controlEnd", "timingStockInterval")  # 库存传输间隔分钟
+        self.timingStateInterval = config.getint("controlEnd", "timingStateInterval")   # 上下架状态更新间隔分钟
 
         # [businessLogic]
         self.defaultOrgNo = config.get("businessLogic", "defaultOrgNo")  # 默认机构编码

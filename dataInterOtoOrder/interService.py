@@ -82,6 +82,8 @@ class DataInterCatering(win32serviceutil.ServiceFramework):
                     schedule.every().day.at(self.sett.timingStockTime).do(self.inter.interStock)
                 if self.sett.timingStockInterval > 0:
                     schedule.every(self.sett.timingStockInterval).minutes.do(self.inter.interStock)
+                if self.sett.timingStateInterval > 0:
+                    schedule.every(self.sett.timingStateInterval).minutes.do(self.inter.interItemStatus)
             except Exception as e:
                 sError = str(e)
                 self.sett.logger.error(sError)

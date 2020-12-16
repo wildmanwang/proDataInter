@@ -75,7 +75,8 @@ class FrontHongshang(BusiProcess):
                     r"  comid		    char(8) null, " \
                     r"  barcode		    varchar(20) null, " \
                     r"  relatedCode	    varchar(50) null, " \
-                    r"  status		    tinyint not null default 1, " \
+                    r"  status		    int not null default 1, " \
+                    r"  soon		    int not null default 0, " \
                     r"  primary key ( cID ) ) "
             cur.execute(lsSql)
 
@@ -127,7 +128,8 @@ class FrontHongshang(BusiProcess):
                 r"'' '自提结束时间', " \
                 r"0 '排序', " \
                 r"'2020-01-01' '开始可用时间', " \
-                r"'2222-01-01' '结束可用时间' " \
+                r"'2222-01-01' '结束可用时间', " \
+                r"pluOnline.status '上架状态' " \
                 r"from plu, " \
                 r"  pluOnline " \
                 r"where plu.comid=pluOnline.comid " \
@@ -136,7 +138,7 @@ class FrontHongshang(BusiProcess):
                 r"and plu.status in ('A','B','C','') ".format(pickupDelay=self.sett.pickupDelay)
         if itemNo:
             lsSql += r" and pluOnline.comid = '{itemNo}'".format(itemNo=itemNo)
-        colName = ["out_goods_id", "goods_name", "logo", "master_picture", "pictures", "description", "comment", "stock", "virtual_sales", "limited_sale", "limited_single", "extra", "cost", "postage", "postage_type", "unit", "price", "original_price", "pickup", "pickup_delay_time", "pickup_start_time", "pickup_end_time", "sort", "start_time", "end_time"]
+        colName = ["out_goods_id", "goods_name", "logo", "master_picture", "pictures", "description", "comment", "stock", "virtual_sales", "limited_sale", "limited_single", "extra", "cost", "postage", "postage_type", "unit", "price", "original_price", "pickup", "pickup_delay_time", "pickup_start_time", "pickup_end_time", "sort", "start_time", "end_time", "status"]
         cur.execute(lsSql)
         rsItems = cur.fetchall()
         rsItems = [[(col.rstrip() if isinstance(col, str) else col) for col in line] for line in rsItems]
@@ -146,6 +148,109 @@ class FrontHongshang(BusiProcess):
 
         # 关闭连接
         conn.close()
+
+        return rtnData
+
+    def getItemsChanged(self):
+        """
+        获取商品列表
+        :return:
+        """
+        rtnData = {
+            "result":True,                  # 逻辑控制 True/False
+            "dataString":"",               # 字符串
+            "dataNumber":1,                # 数字
+            "info":"",                      # 信息
+            "entities": {}                  # 表体集
+        }
+
+        # 获取数据库连接
+        conn = self.db.GetConnect()
+        cur = conn.cursor()
+        if not cur:
+            raise Exception("基础数据获取失败：{name}数据库[{db}]连接失败".format(name=self.interName, db=self.interConn["database"]))
+
+        # itemNo = "00021509"         # 购物袋小
+        # itemNo = "00036967"         # 一毛钱的糖果
+
+        lsSql = r"select	plu.comid '第三方商品id', " \
+                r"plu.comname '商品名称',  " \
+                r"'' '商品商标',  " \
+                r"'' '商品主图',  " \
+                r"'' '商品图片列表',  " \
+                r"'' '图文详情', " \
+                r"plu.remark '商品描述', " \
+                r"0 '库存', " \
+                r"0 '虚拟销量', " \
+                r"0 '限量销售', " \
+                r"0 '单次限量销售', " \
+                r"'' '扩展参数', " \
+                r"0 '成本', " \
+                r"0 '基本邮费', " \
+                r"1 '邮费计算方式', " \
+                r"plu.unit '单位', " \
+                r"plu.saleprice '销售价', " \
+                r"plu.saleprice '原价', " \
+                r"1 '上门自提', " \
+                r"'{pickupDelay}' '自提延时时间', " \
+                r"'' '自提开始时间', " \
+                r"'' '自提结束时间', " \
+                r"0 '排序', " \
+                r"'2020-01-01' '开始可用时间', " \
+                r"'2222-01-01' '结束可用时间', " \
+                r"pluOnline.status '上架状态' " \
+                r"from plu, " \
+                r"  pluOnline " \
+                r"where plu.comid=pluOnline.comid " \
+                r"and pluOnline.soon=1 ".format(pickupDelay=self.sett.pickupDelay)
+        colName = ["out_goods_id", "goods_name", "logo", "master_picture", "pictures", "description", "comment", "stock", "virtual_sales", "limited_sale", "limited_single", "extra", "cost", "postage", "postage_type", "unit", "price", "original_price", "pickup", "pickup_delay_time", "pickup_start_time", "pickup_end_time", "sort", "start_time", "end_time", "status"]
+        cur.execute(lsSql)
+        rsItems = cur.fetchall()
+        rsItems = [[(col.rstrip() if isinstance(col, str) else col) for col in line] for line in rsItems]
+        rtnData["entities"]["item"] = []
+        for line in rsItems:
+            rtnData["entities"]["item"].append(dict(zip(colName, line)))
+
+        # 关闭连接
+        conn.close()
+
+        return rtnData
+
+    def updateItemsChanged(self, itemList):
+        """
+        重置商品更新状态
+        """
+        rtnData = {
+            "result": True,  # 逻辑控制 True/False
+            "dataString": "",  # 字符串
+            "dataNumber": 1,  # 数字
+            "info": "",  # 信息
+            "entities": {
+                "item": []
+            }  # 表体集
+        }
+
+        try:
+            # 获取数据库连接
+            bConnected = False
+            conn = self.db.GetConnect()
+            cur = conn.cursor()
+            if not cur:
+                raise Exception("基础数据获取失败：{name}数据库[{db}]连接失败".format(name=self.interName, db=self.interConn["database"]))
+            bConnected = True
+
+            for item in itemList:
+                lsSql = r"update pluOnline set soon=0 where comid='{comid}' and soon=1".format(comid=item["code"])
+                cur.execute(lsSql)
+                conn.commit()
+                rtnData["entities"]["item"].append(item["code"])
+        except Exception as e:
+            # 关闭连接
+            if bConnected:
+                conn.rollback()
+                conn.close()
+            rtnData["result"] = False
+            rtnData["info"] = str(e)
 
         return rtnData
 

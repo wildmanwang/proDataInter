@@ -378,6 +378,51 @@ class InterControl():
 
         return rtnData
 
+    def interItemStatus(self):
+        """
+        商品上架下架
+        :return:
+        """
+        rtnData = {
+            "result": True,  # 逻辑控制 True/False
+            "dataString": "",  # 字符串
+            "dataNumber": 1,  # 数字
+            "info": "",  # 信息
+            "entities": {}
+        }
+        bContinue = True
+
+        # 取出数据
+        getData = self.front.getItemsChanged()
+
+        # 保存数据
+        if bContinue and len(getData["entities"]["item"]) > 0:
+            putData = self.putItems(getData)
+            if not putData["result"]:
+                bContinue = False
+                rtnData["info"] = putData["info"]
+
+            rtnTmp = self.front.updateItemsChanged(putData["entities"]["item"])
+            if not rtnTmp["result"]:
+                bContinue = False
+                rtnData["info"] = rtnTmp["info"]
+
+            # 更新历史记录
+            if bContinue:
+                rtnTmp = self.putDataCompleted(putData)
+                if not rtnTmp:
+                    bContinue = False
+                    rtnData["info"] = rtnTmp["info"]
+
+            # 显示日志
+            if len(putData["entities"]["item"]) > 0:
+                self.sett.logger.info("成功更新商品状态{num}条.".format(num=len(rtnTmp["entities"]["item"])))
+
+        if not bContinue:
+            rtnData["result"] = False
+
+        return rtnData
+
     def interBusiData(self):
         """
         业务单据对接
@@ -537,6 +582,89 @@ class InterControl():
 
         return rtnData
 
+    def putItems(self, putData):
+        """
+        上传商品
+        """
+        rtnData = {
+            "result": True,  # 逻辑控制 True/False
+            "dataString": "",  # 字符串
+            "dataNumber": 1,  # 数字
+            "info": "",  # 信息
+            "entities": {
+                "item": []
+            }
+        }
+
+        iCnt = len(putData["entities"]["item"])
+        iNum = 0
+        for line in putData["entities"]["item"]:
+            pItems = {
+                "out_goods_id":     line["out_goods_id"],
+                "goods_name":       line["goods_name"].encode("latin1").decode("gbk"),
+                "logo":             line["logo"],
+                "master_picture":   line["master_picture"],
+                "pictures":         line["pictures"],
+                "description":      line["description"],
+                "comment":          line["comment"],
+                "stock":            line["stock"],
+                "virtual_sales":    line["virtual_sales"],
+                "limited_sale":     line["limited_sale"],
+                "limited_single":   line["limited_single"],
+                "extra":            line["extra"],
+                "cost":             round(line["cost"] * 100),
+                "postage":          round(line["postage"] * 100),
+                "postage_type":     line["postage_type"],
+                "unit":             line["unit"],
+                "price": {
+                    "price":            round(line["price"] * 100),
+                    "original_price":   round(line["original_price"] * 100)
+                },
+                "pickup":           line["pickup"],
+                "pickup_delay_time": line["pickup_delay_time"],
+                "pickup_start_time": line["pickup_start_time"],
+                "pickup_end_time":  line["pickup_end_time"],
+                "sort":             line["sort"],
+                "start_time":       line["start_time"],
+                "end_time":         line["end_time"],
+                "status":           line["status"],
+            }
+            rtnTmp = self._getSign(pItems)
+            if rtnTmp["result"]:
+                sSign = rtnTmp["dataString"]
+            else:
+                raise Exception(rtnTmp["info"])
+            sUrl = "{url}/mch/goods/upload?app_id={app_id}&sign={sign}".format(
+                url=self.sett.interUrl,
+                app_id=self.sett.appid,
+                sign=sSign
+            )
+            import requests
+            headers = {'Content-Type': 'application/json'}
+            res = requests.post(url=sUrl, headers=headers, json=pItems)
+            res = json.loads(res.text)
+            if res["code"] == "10000":
+                rtnData["entities"]["item"].append({
+                    "type": "item",
+                    "code": line["out_goods_id"],
+                    "related": res["data"]["goods_id"],
+                    "name": line["goods_name"],
+                    "time": datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d %H:%M:%S"),
+                    "status": 1
+                })
+                iNum += 1
+            else:
+                rtnData["result"] = False
+                rtnData["info"] = res["message"]
+                break
+
+        rtnData["info"] += "上传了{num}/{cnt}商品".format(
+            num=iNum,
+            cnt=iCnt
+        )
+
+        return rtnData
+
     def interStock(self):
         """
         更新库存
@@ -583,91 +711,9 @@ class InterControl():
                     rtnData["info"] = res["message"]
                     break
 
-        rtnData["info"] += "上传了{num}/{cnt}商品".format(
-            num=iNum,
-            cnt=len(rtnStock["entities"]["item"])
-        )
-
-        return rtnData
-
-    def putItems(self, putData):
-        """
-        上传商品
-        """
-        rtnData = {
-            "result": True,  # 逻辑控制 True/False
-            "dataString": "",  # 字符串
-            "dataNumber": 1,  # 数字
-            "info": "",  # 信息
-            "entities": {
-                "item": []
-            }
-        }
-
-        iCnt = len(putData["entities"]["item"])
-        iNum = 0
-        for line in putData["entities"]["item"]:
-            pItems = {
-                "out_goods_id":     line["out_goods_id"],
-                "goods_name":       line["goods_name"].encode("latin1").decode("gbk"),
-                "logo":             line["logo"],
-                "master_picture":   line["master_picture"],
-                "pictures":         line["pictures"],
-                "description":      line["description"],
-                "comment":          line["comment"],
-                "stock":            line["stock"],
-                "virtual_sales":    line["virtual_sales"],
-                "limited_sale":     line["limited_sale"],
-                "limited_single":   line["limited_single"],
-                "extra":            line["extra"],
-                "cost":             round(line["cost"] * 100),
-                "postage":          round(line["postage"] * 100),
-                "postage_type":     line["postage_type"],
-                "unit":             line["unit"],
-                "price": {
-                    "price":            round(line["price"] * 100),
-                    "original_price":   round(line["original_price"] * 100)
-                },
-                "pickup":           line["pickup"],
-                "pickup_delay_time": line["pickup_delay_time"],
-                "pickup_start_time": line["pickup_start_time"],
-                "pickup_end_time":  line["pickup_end_time"],
-                "sort":             line["sort"],
-                "start_time":       line["start_time"],
-                "end_time":         line["end_time"],
-            }
-            rtnTmp = self._getSign(pItems)
-            if rtnTmp["result"]:
-                sSign = rtnTmp["dataString"]
-            else:
-                raise Exception(rtnTmp["info"])
-            sUrl = "{url}/mch/goods/upload?app_id={app_id}&sign={sign}".format(
-                url=self.sett.interUrl,
-                app_id=self.sett.appid,
-                sign=sSign
-            )
-            import requests
-            headers = {'Content-Type': 'application/json'}
-            res = requests.post(url=sUrl, headers=headers, json=pItems)
-            res = json.loads(res.text)
-            if res["code"] == "10000":
-                rtnData["entities"]["item"].append({
-                    "type": "item",
-                    "code": line["out_goods_id"],
-                    "related": res["data"]["goods_id"],
-                    "name": line["goods_name"],
-                    "time": datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d %H:%M:%S"),
-                    "status": 1
-                })
-                iNum += 1
-            else:
-                rtnData["result"] = False
-                rtnData["info"] = res["message"]
-                break
-
         rtnData["info"] += "更新了{num}/{cnt}库存".format(
             num=iNum,
-            cnt=iCnt
+            cnt=len(rtnStock["entities"]["item"])
         )
 
         return rtnData
@@ -757,9 +803,10 @@ if __name__ == "__main__":
         # rtn = inter.front.getItems("")                # OK
         # rtn = inter.putItems(rtn)                     # OK
         # rtn = inter.interBaseData()                   # OK
-        rtn = inter.interBusiData()                   # OK
+        # rtn = inter.interBusiData()                   # OK
         # rtn = inter.interOrderFeedback()              # OK
         # rtn = inter.interStock()                      # OK
+        rtn = inter.interItemStatus()
         i = 1
         i += 1
     except Exception as e:
