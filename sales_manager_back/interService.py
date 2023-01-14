@@ -103,7 +103,8 @@ def basicDataList():
     :return:
     """
     sType = request.args.get("dataType").strip()
-    rtn = data.basicDataList(sType)
+    sQuery = request.args.get("query").strip()
+    rtn = data.basicDataList(sType, sQuery)
     rtnFront = {
         "code": 20000,
         "data": {

@@ -108,7 +108,7 @@ class InterData():
 
         return rtnData
 
-    def basicDataList(self, sType):
+    def basicDataList(self, sType, sQuery):
         """
         获取基础资料
         :param sType:
@@ -132,7 +132,14 @@ class InterData():
         ldKey = {}
         try:
             if sType == 'category':
-                ldItem["category"] = r"select id, name, order_num, status, remark from category order by order_num asc, id asc"
+                ldItem["category"] = r"select id, name, order_num, status, remark from category where 1=1"
+                if len(sQuery) > 0:
+                    dQuery = json.loads(sQuery)
+                    if dQuery.get("name"):
+                        ldItem["category"] += r" and name like '%{name}%'".format(name=dQuery.get("name"))
+                    if dQuery.get("status") >= 0:
+                        ldItem["category"] += r" and status = {status}".format(status=dQuery.get("status"))
+                ldItem["category"] += r" order by order_num asc, id asc"
                 ldKey["category"] = ["id", "name", "order_num", "status", "remark"]
             elif sType == 'supplier':
                 ldItem["supplier"] = r"select id, name, simple_name, code, status, remark from supplier"
