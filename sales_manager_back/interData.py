@@ -108,7 +108,7 @@ class InterData():
 
         return rtnData
 
-    def basicDataList(self, sType, sQuery):
+    def basicDataList(self, sType, sQuery, sPage):
         """
         获取基础资料
         :param sType:
@@ -130,22 +130,40 @@ class InterData():
         bConn = False
         ldItem = {}
         ldKey = {}
+        lsTotal = ""
         try:
+            if len(sQuery) > 0:
+                dQuery = json.loads(sQuery)
+            if len(sPage) > 0:
+                dPage = json.loads(sPage)
             if sType == 'category':
-                ldItem["category"] = r"select id, name, order_num, status, remark from category where 1=1"
-                if len(sQuery) > 0:
-                    dQuery = json.loads(sQuery)
-                    if dQuery.get("name"):
-                        ldItem["category"] += r" and name like '%{name}%'".format(name=dQuery.get("name"))
-                    if dQuery.get("status") >= 0:
-                        ldItem["category"] += r" and status = {status}".format(status=dQuery.get("status"))
-                ldItem["category"] += r" order by order_num asc, id asc"
-                ldKey["category"] = ["id", "name", "order_num", "status", "remark"]
+                ldItem["category"] = r"select id, name, order_num, status, (case status when 1 then '正常' else '无效' end) enum_status, remark from category where 1=1"
+                lsTotal = r"select count(id) from category where 1=1"
+                if dQuery.get("name"):
+                    ldItem["category"] += r" and name like '%{name}%'".format(name=dQuery.get("name"))
+                    lsTotal += r" and name like '%{name}%'".format(name=dQuery.get("name"))
+                if dQuery.get("status") >= 0:
+                    ldItem["category"] += r" and status = {status}".format(status=dQuery.get("status"))
+                    lsTotal += r" and status = {status}".format(status=dQuery.get("status"))
+                if dPage.get("sortCol"):
+                    ldItem["category"] += r" order by {sortCol} {sortType}".format(
+                        sortCol=dPage["sortCol"],
+                        sortType=dPage["sortType"]
+                    )
+                else:
+                    ldItem["category"] += r" order by order_num asc, id asc"
+                ldItem["category"] += r" limit {pageFrom}, {pageTo}".format(
+                    pageFrom=(dPage["page"] - 1) * dPage["limit"],
+                    pageTo=dPage["limit"]
+                )
+                ldKey["category"] = ["id", "name", "order_num", "status", "enum_status", "remark"]
             elif sType == 'supplier':
                 ldItem["supplier"] = r"select id, name, simple_name, code, status, remark from supplier"
+                lsTotal = r"select count(id) from supplier"
                 ldKey["supplier"] = ["id","name", "simple_name", "code", "status", "remark"]
             elif sType == "goods":
                 ldItem["goods"] = r"select id, code, name, category, category_name, supplier, supplier_name, model, image, status, remark from goods order by order_num"
+                lsTotal = r"select count(id) from goods"
                 ldKey["goods"] = ["id", "code", "name", "category", "category_name", "supplier", "supplier_name", "model", "image", "status", "remark"]
             else:
                 raise Exception("非法的数据类型参数:{sType}".format(sType=sType))
@@ -162,7 +180,10 @@ class InterData():
                 rtnData["entities"][lsItem] = []
                 for line in rsData:
                     rtnData["entities"][lsItem].append(dict(zip(ldKey[lsItem], line)))
+            cur.execute(lsTotal)
+            rsData = cur.fetchall()
             rtnData["result"] = True
+            rtnData["dataNumber"] = rsData[0][0]
         except Exception as e:
             rtnData["info"] = str(e)
         finally:

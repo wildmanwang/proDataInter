@@ -104,11 +104,13 @@ def basicDataList():
     """
     sType = request.args.get("dataType").strip()
     sQuery = request.args.get("query").strip()
-    rtn = data.basicDataList(sType, sQuery)
+    sPage = request.args.get("page").strip()
+    rtn = data.basicDataList(sType, sQuery, sPage)
+    print(rtn["dataNumber"])
     rtnFront = {
         "code": 20000,
         "data": {
-            "total": len(rtn["entities"][sType]),
+            "total": rtn["dataNumber"],
             "items": rtn["entities"][sType]
         }
     }
