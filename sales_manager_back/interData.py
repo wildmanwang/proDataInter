@@ -13,42 +13,6 @@ class InterData():
     def __init__(self, sett):
         self.sett = sett
         self.db = MYSQL(self.sett.serverHost, self.sett.serverUser, self.sett.serverPwd, self.sett.serverDb)
-        """
-        CREATE TABLE `category` (
-        `id` int unsigned NOT NULL AUTO_INCREMENT,
-        `name` varchar(50) NOT NULL COMMENT '类别名称',
-        `order_num` int NOT NULL DEFAULT '100' COMMENT '排序号',
-        `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态 0:无效 1:正常',
-        `remark` varchar(100) DEFAULT NULL COMMENT '备注',
-        PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品类别';
-
-        CREATE TABLE `goods` (
-        `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID，自增主键',
-        `code` varchar(20) NOT NULL COMMENT '商品代码',
-        `name` varchar(100) NOT NULL COMMENT '商品名称',
-        `category` int unsigned NOT NULL COMMENT '商品类别',
-        `category_name` varchar(50) NOT NULL COMMENT '类别名称',
-        `supplier` int unsigned NOT NULL COMMENT '供应商ID',
-        `supplier_name` varchar(50) NOT NULL COMMENT '供应商名称',
-        `model` varchar(20) DEFAULT NULL COMMENT '型号',
-        `image` varchar(100) DEFAULT NULL COMMENT '商品图片（地址）',
-        `order_num` int NOT NULL DEFAULT '100' COMMENT '排序号',
-        `status` tinyint NOT NULL DEFAULT '0' COMMENT '状态 0:下架 1:上架 2:停售',
-        `remark` varchar(100) DEFAULT NULL COMMENT '备注',
-        PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-        CREATE TABLE `supplier` (
-        `id` int unsigned NOT NULL AUTO_INCREMENT,
-        `name` varchar(100) NOT NULL COMMENT '名称',
-        `simple_name` varchar(50) NOT NULL COMMENT '简称',
-        `code` varchar(10) DEFAULT NULL COMMENT '代码',
-        `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '状态 0:无效 1:正常',
-        `remark` varchar(100) DEFAULT NULL COMMENT '备注',
-        PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='供应商';
-        """
 
     def user_login(self, sUser, sPwd):
         """
@@ -123,7 +87,7 @@ class InterData():
         rtnData = {
             "result":False,                # 逻辑控制 True/False
             "dataString":"",               # 字符串
-            "dataNumber":0,                # 数字
+            "dataNumber":0,                # 总记录数
             "info":"",                      # 信息
             "entities": {}
         }

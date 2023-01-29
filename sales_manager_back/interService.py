@@ -19,15 +19,29 @@ import json
 from flask import Flask, request
 from interConfig import Settings
 from interData import InterData
+from ormOper import OrmOper
 from myTools import MyJSONEncoder
 
 sett = Settings()
 data = InterData(sett)
+orm = OrmOper(sett)
 server = Flask(__name__)
 
 @server.route('/hello', methods=['get', 'post'])
 def home():
     return "这里是石将军数据服务接口"
+
+@server.route('/orm_test', methods=['get', 'post'])
+def orm_test():
+    rtn = orm.basicDataList("category", "", "")
+    sRtn = ""
+    for line in rtn["entities"]["category"]:
+        sRtn += "id：{id}；name：{name}；status：{status}\n".format(
+            id=line["id"],
+            name=line["name"],
+            status=line["status"]
+        )
+    return sRtn
 
 @server.route('/test', methods=['post'])
 def test():

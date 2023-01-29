@@ -26,6 +26,7 @@ class Settings():
         self.serverHost = config.get("dbServer", "host")         # 服务端地址
         if self.serverHost[-1:] == "/":
             self.serverHost = self.serverHost[:-1]
+        self.serverPort = config.get("dbServer", "port")        # 服务端端口
         self.serverUser = config.get("dbServer", "user")         # 服务端用户名
         self.serverPwd = config.get("dbServer", "password")      # 服务端密码
         self.serverDb = config.get("dbServer", "database")       # 服务端数据库名
