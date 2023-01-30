@@ -33,15 +33,10 @@ def home():
 
 @server.route('/orm_test', methods=['get', 'post'])
 def orm_test():
-    rtn = orm.basicDataList("category", "", "")
-    sRtn = ""
-    for line in rtn["entities"]["category"]:
-        sRtn += "id：{id}；name：{name}；status：{status}\n".format(
-            id=line["id"],
-            name=line["name"],
-            status=line["status"]
-        )
-    return sRtn
+    sType = "category"
+    rtn = orm.basicDataNew(sType=sType, para={"name": "呵呵", "order_num": 22, "status": 1, "remark": "2222"})
+
+    return rtn["info"]
 
 @server.route('/test', methods=['post'])
 def test():
