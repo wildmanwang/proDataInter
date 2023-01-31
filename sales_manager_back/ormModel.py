@@ -19,8 +19,8 @@ class Category(Base):
     created_time = Column(DateTime(timezone=True), server_default=func.now(), nullable=True, comment="创建时间")
     updated_time = Column(DateTime(timezone=True), default=None, onupdate=func.now(), nullable=True, comment="更新时间")
 
-    def __init__(self, **items):
-        Base.__init__()
+    def __init__(self, items):
+        Base().__init__()
         for key in items:
             if hasattr(self, key):
                 setattr(self, key, items[key])

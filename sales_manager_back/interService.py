@@ -34,7 +34,8 @@ def home():
 @server.route('/orm_test', methods=['get', 'post'])
 def orm_test():
     sType = "category"
-    rtn = orm.basicDataNew(sType=sType, para={"name": "呵呵", "order_num": 22, "status": 1, "remark": "2222"})
+    para = {"id": 46, "name": "哈哈哈", "order_num": 22, "status": 1, "remark": "2222"}
+    rtn = orm.basicDataModify(sType, para)
 
     return rtn["info"]
 
@@ -114,8 +115,7 @@ def basicDataList():
     sType = request.args.get("dataType").strip()
     sQuery = request.args.get("query").strip()
     sPage = request.args.get("page").strip()
-    rtn = data.basicDataList(sType, sQuery, sPage)
-    print(rtn["dataNumber"])
+    rtn = orm.basicDataList(sType, sQuery, sPage)
     rtnFront = {
         "code": 20000,
         "data": {

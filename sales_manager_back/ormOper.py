@@ -5,6 +5,7 @@ __author__ = "Cliff.wang"
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import json
 
 class OrmOper():
     def __init__(self, sett):
@@ -37,13 +38,28 @@ class OrmOper():
             "entities": {}
         }
 
+        iDb = False
         try:
+            if len(sQuery) > 0:
+                dQuery = json.loads(sQuery)
+            else:
+                dQuery = {}
+            dPara = {}
+            if len(sPage) > 0:
+                dPage = json.loads(sPage)
+            else:
+                dPage = {}
             select_db = sessionmaker(self.engine)
             db_session = select_db()
+            iDb = True
             dataModel = None
             if sType == "category":
                 from ormModel import Category
                 dataModel = Category
+                iNum = dQuery.get("status")
+                if iNum is not None:
+                    if iNum >= 0:
+                        dPara["status"] = iNum
             elif sType == "supplier":
                 from ormModel import Supplier
                 dataModel = Supplier
@@ -52,7 +68,10 @@ class OrmOper():
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
-            rs = db_session.query(dataModel).all()
+            if len(dPara) > 0:
+                rs = db_session.query(dataModel).filter_by(**dPara).all()
+            else:
+                rs = db_session.query(dataModel).all()
             rtnData["entities"][sType] = []
             for obj in rs:
                 row = {}
@@ -60,13 +79,17 @@ class OrmOper():
                 for col in attr:
                     row[col] = getattr(obj, col)
                 rtnData["entities"][sType].append(row)
+            if sType == "category":
+                for line in rtnData["entities"][sType]:
+                    line["enum_status"] = "正常" if line["status"] == 1 else "无效"
             rtnData["result"] = True
             rtnData["dataNumber"] = len(rs)
             rtnData["info"] = "查询到{cnt}条记录.".format(cnt=len(rs))
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            db_session.close()
+            if iDb:
+                db_session.close()
         
         return rtnData
 
@@ -83,9 +106,11 @@ class OrmOper():
             "entities": {}
         }
 
+        iDb = False
         try:
             select_db = sessionmaker(self.engine)
             db_session = select_db()
+            iDb = True
             dataModel = None
             if sType == "category":
                 from ormModel import Category
@@ -106,12 +131,13 @@ class OrmOper():
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            db_session.close()
+            if iDb:
+                db_session.close()
 
         return rtnData
 
 
-    def basicDataNew(self, sType, **para):
+    def basicDataNew(self, sType, para):
         """
         新增基础资料
         """
@@ -123,25 +149,45 @@ class OrmOper():
             "entities": {}
         }
 
+        sTitle = ""
+        iDb = False
         try:
             select_db = sessionmaker(self.engine)
             db_session = select_db()
+            iDb = True
             dataModel = None
-            print(1)
             if sType == "category":
+                sTitle = "类别"
                 from ormModel import Category
-                print(2)
+                if not para.get("name"):
+                    raise Exception("请输入{title}名称.".format(title=sTitle))
+                elif len(para["name"].rstrip()) <= 2:
+                    raise Exception("{title}名称长度至少2位.".format(title=sTitle))
+                elif len(para["name"].rstrip()) > 20:
+                    raise Exception("{title}名称长度不能超过20.".format(title=sTitle))
                 newObj = Category(para)
-                print(3)
             elif sType == "supplier":
+                sTitle = "供应商"
                 from ormModel import Supplier
+                if not para.get("name"):
+                    raise Exception("请输入{title}名称.".format(title=sTitle))
+                elif len(para["name"].rstrip()) <= 4:
+                    raise Exception("{title}名称长度至少4位.".format(title=sTitle))
+                elif len(para["name"].rstrip()) > 50:
+                    raise Exception("{title}名称长度不能超过50.".format(title=sTitle))
                 newObj = Supplier(para)
             elif sType == "goods":
+                sTitle = "商品"
                 from ormModel import Goods
+                if not para.get("name"):
+                    raise Exception("请输入{title}名称.".format(title=sTitle))
+                elif len(para["name"].rstrip()) <= 5:
+                    raise Exception("{title}名称长度至少5位.".format(title=sTitle))
+                elif len(para["name"].rstrip()) > 50:
+                    raise Exception("{title}名称长度不能超过50.".format(title=sTitle))
                 newObj = Goods(para)
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
-            print(2)
             db_session.add(newObj)
             db_session.commit()
             rtnData["result"] = True
@@ -150,6 +196,52 @@ class OrmOper():
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            db_session.close()
+            if iDb:
+                db_session.close()
 
         return rtnData
+
+
+    def basicDataModify(self, sType, para):
+        """
+        修改基础资料
+        """
+        rtnData = {
+            "result":False,                # 逻辑控制 True/False
+            "dataString":"",               # 字符串
+            "dataNumber":0,                # 数字
+            "info":"",                      # 信息
+            "entities": {}
+        }
+
+        iDb = False
+        try:
+            select_db = sessionmaker(self.engine)
+            db_session = select_db()
+            iDb = True
+            dataModel = None
+            if sType == "category":
+                from ormModel import Category
+                dataModel = Category
+            elif sType == "supplier":
+                from ormModel import Supplier
+                dataModel = Supplier
+            elif sType == "goods":
+                from ormModel import Goods
+                dataModel = Goods
+            else:
+                raise Exception("Data Type [{type}] is not defined.".format(type=sType))
+            obj = db_session.query(dataModel).filter(dataModel.id==para.get("id"))
+            icnt = obj.update(para)
+            db_session.commit()
+            rtnData["result"] = True
+            rtnData["dataNumber"] = icnt
+            rtnData["info"] = "数据[{id}]更新成功.".format(id=obj.first().id)
+        except Exception as e:
+            rtnData["info"] = str(e)
+        finally:
+            if iDb:
+                db_session.close()
+
+        return rtnData
+
