@@ -3,7 +3,7 @@
 """
 __author__ = "Cliff.wang"
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func, and_, or_
 from sqlalchemy.orm import sessionmaker
 import json
 
@@ -48,7 +48,7 @@ class OrmOper():
             if len(sPage) > 0:
                 dPage = json.loads(sPage)
             else:
-                dPage = {}
+                dPage = {"page": 1, "limit": 100}
             select_db = sessionmaker(self.engine)
             db_session = select_db()
             iDb = True
@@ -57,9 +57,22 @@ class OrmOper():
                 from ormModel import Category
                 dataModel = Category
                 iNum = dQuery.get("status")
-                if iNum is not None:
-                    if iNum >= 0:
+                if iNum is None:
+                    dPara["status"] = -1
+                else:
+                    if iNum == 0 or iNum == 1:
                         dPara["status"] = iNum
+                    else:
+                        dPara["status"] = -1
+                sStr = dQuery.get("name")
+                if sStr is None:
+                    dPara["name"] = ""
+                else:
+                    sStr = sStr.strip()
+                    if len(sStr) > 0:
+                        dPara["name"] = sStr
+                    else:
+                        dPara["name"] = ""
             elif sType == "supplier":
                 from ormModel import Supplier
                 dataModel = Supplier
@@ -68,12 +81,18 @@ class OrmOper():
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
-            if len(dPara) > 0:
-                rs = db_session.query(dataModel).filter_by(**dPara).all()
-            else:
-                rs = db_session.query(dataModel).all()
+            rs1 = db_session.query(dataModel)
+            rs2 = db_session.query(dataModel)
+            if dPara["status"] != -1:
+                rs1 = rs1.filter(dataModel.status == dPara["status"])
+                rs2 = rs2.filter(dataModel.status == dPara["status"])
+            if dPara["name"] != "":
+                rs1 = rs1.filter(dataModel.name.like("{name}%".format(name=dPara["name"])))
+                rs2 = rs2.filter(dataModel.name.like("{name}%".format(name=dPara["name"])))
+            rs1 = rs1.limit(dPage["limit"]).offset((dPage["page"] - 1) * dPage["limit"]).all()
+            rtnData["dataNumber"] = rs2.count()
             rtnData["entities"][sType] = []
-            for obj in rs:
+            for obj in rs1:
                 row = {}
                 attr = [a for a in dir(obj) if not a.startswith("_") and a not in ('metadata', 'registry')]
                 for col in attr:
@@ -83,14 +102,50 @@ class OrmOper():
                 for line in rtnData["entities"][sType]:
                     line["enum_status"] = "正常" if line["status"] == 1 else "无效"
             rtnData["result"] = True
-            rtnData["dataNumber"] = len(rs)
-            rtnData["info"] = "查询到{cnt}条记录.".format(cnt=len(rs))
+            rtnData["info"] = "查询到{cnt}条记录.".format(cnt=rtnData["dataNumber"])
         except Exception as e:
             rtnData["info"] = str(e)
+            print(rtnData["info"])
         finally:
             if iDb:
                 db_session.close()
         
+        return rtnData
+
+
+    def _queryFilter(self, model, query, para):
+        """
+        查询条件拼接
+        para:[
+            "colname":      字段名,
+            "oper":         比较方式,
+            "value":        值
+        ]
+        枚举：
+            比较方式            值
+            >                   3 or date or datetime
+            >=                  3 or date or datetime
+            ==                  3 or "abc" or date or datetime
+            <=                  3 or date or datetime
+            <                   3 or date or datetime
+            !=                  3 or "abc" or date or datetime
+            between             (1, 3) or (date1, date2) or (time1, time2)
+            in                  [1, 3, 9] or ["a", "bb", "f"] or [date1, date2, date3]
+            not in              [1, 3, 9] or ["a", "bb", "f"] or [date1, date2, date3]
+            like                "a%" or "%a" or "%a%"
+        """
+        rtnData = {
+            "result":False,                # 逻辑控制 True/False
+            "dataString":"",               # 字符串
+            "dataNumber":0,                # 数字
+            "info":"",                      # 信息
+            "entities": {}
+        }
+
+        for line in para:
+            if para["oper"] == "==":
+                query.filter(getattr(model, para["colname"]) == para["value"])
+
         return rtnData
 
 
