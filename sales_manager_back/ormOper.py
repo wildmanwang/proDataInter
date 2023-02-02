@@ -41,9 +41,9 @@ class OrmOper():
         iDb = False
         try:
             if len(sQuery) > 0:
-                dQuery = json.loads(sQuery)
+                dQuery = json.loads(sQuery)["para"]
             else:
-                dQuery = {}
+                dQuery = []
             dPara = {}
             if len(sPage) > 0:
                 dPage = json.loads(sPage)
@@ -56,6 +56,7 @@ class OrmOper():
             if sType == "category":
                 from ormModel import Category
                 dataModel = Category
+                """
                 iNum = dQuery.get("status")
                 if iNum is None:
                     dPara["status"] = -1
@@ -73,6 +74,7 @@ class OrmOper():
                         dPara["name"] = sStr
                     else:
                         dPara["name"] = ""
+                """
             elif sType == "supplier":
                 from ormModel import Supplier
                 dataModel = Supplier
@@ -81,6 +83,11 @@ class OrmOper():
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
+            print(1)
+            rs1 = this._queryFilter(db_session, dataModel, dPara)
+            print(2)
+            rs2 = this._queryFilter(db_session, dataModel, dPara)
+            """
             rs1 = db_session.query(dataModel)
             rs2 = db_session.query(dataModel)
             if dPara["status"] != -1:
@@ -89,6 +96,7 @@ class OrmOper():
             if dPara["name"] != "":
                 rs1 = rs1.filter(dataModel.name.like("{name}%".format(name=dPara["name"])))
                 rs2 = rs2.filter(dataModel.name.like("{name}%".format(name=dPara["name"])))
+            """
             rs1 = rs1.limit(dPage["limit"]).offset((dPage["page"] - 1) * dPage["limit"]).all()
             rtnData["dataNumber"] = rs2.count()
             rtnData["entities"][sType] = []
@@ -113,7 +121,7 @@ class OrmOper():
         return rtnData
 
 
-    def _queryFilter(self, model, query, para):
+    def _queryFilter(self, session, model, para):
         """
         查询条件拼接
         para:[
@@ -138,15 +146,41 @@ class OrmOper():
             "result":False,                # 逻辑控制 True/False
             "dataString":"",               # 字符串
             "dataNumber":0,                # 数字
+            "dataObj":None,
             "info":"",                      # 信息
             "entities": {}
         }
 
+        query = session.query(model)
         for line in para:
-            if para["oper"] == "==":
-                query.filter(getattr(model, para["colname"]) == para["value"])
+            objValue = line["value"]
+            if line["oper"] == ">":
+                query = query.filter(getattr(model, line["colname"]) > objValue)
+            elif line["oper"] == ">=":
+                query = query.filter(getattr(model, line["colname"]) >= objValue)
+            elif line["oper"] == "==":
+                query = query.filter(getattr(model, line["colname"]) == objValue)
+            elif line["oper"] == "<=":
+                query = query.filter(getattr(model, line["colname"]) <= objValue)
+            elif line["oper"] == "<":
+                query = query.filter(getattr(model, line["colname"]) < objValue)
+            elif line["oper"] == "!=":
+                query = query.filter(getattr(model, line["colname"]) != objValue)
+            elif line["oper"] == "between":
+                if type(objValue) in (list, tuple):
+                    if len(objValue) == 2:
+                        query = query.filter(getattr(model, line["colname"]).between(*objValue))
+            elif line["oper"] == "in":
+                if type(objValue) == list:
+                    query = query.filter(getattr(model, line["colname"]).in_(objValue))
+            elif line["oper"] == "not in":
+                if type(objValue) == list:
+                    query = query.filter(getattr(model, line["colname"]).notin_(objValue))
+            elif line["oper"] == "like":
+                if type(objValue) == str:
+                    query = query.filter(getattr(model, line["colname"]).like(objValue))
 
-        return rtnData
+        return query
 
 
     def basicDataDelete(self, sType, iID):

@@ -112,6 +112,7 @@ def basicDataList():
     获取基础资料
     :return:
     """
+
     sType = request.args.get("dataType").strip()
     sQuery = request.args.get("query").strip()
     sPage = request.args.get("page").strip()
