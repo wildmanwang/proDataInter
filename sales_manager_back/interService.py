@@ -18,12 +18,10 @@ __author__ = "Cliff.wang"
 import json
 from flask import Flask, request
 from interConfig import Settings
-from interData import InterData
 from ormOper import OrmOper
 from myTools import MyJSONEncoder
 
 sett = Settings()
-data = InterData(sett)
 orm = OrmOper(sett)
 server = Flask(__name__)
 
@@ -71,7 +69,7 @@ def user_login():
     """
     登录
     """
-    rtn = data.user_login("0001", "123456")
+    rtn = orm.user_login("0001", "123456")
     rtnFront = {
         "code": 20000,
         "data": rtn["entities"]
@@ -85,7 +83,7 @@ def user_info():
     登录
     """
     sToken = request.args.get("token").strip()
-    rtn = data.user_info(sToken)
+    rtn = orm.user_info(sToken)
     rtnFront = {
         "code": 20000,
         "data": rtn["entities"]
@@ -98,7 +96,7 @@ def user_logout():
     """
     登出
     """
-    rtn = data.user_logout()
+    rtn = orm.user_logout()
     rtnFront = {
         "code": 20000,
         "data": rtn["entities"]
@@ -116,6 +114,7 @@ def basicDataList():
     sType = request.args.get("dataType").strip()
     sQuery = request.args.get("query").strip()
     sPage = request.args.get("page").strip()
+    print(sPage)
     rtn = orm.basicDataList(sType, sQuery, sPage)
     rtnFront = {
         "code": 20000,
@@ -137,7 +136,7 @@ def basicDataDelete():
     para = json.loads(sPara)
     sType = para["dataType"]
     iID = para["id"]
-    rtn = data.basicDataDelete(sType, iID)
+    rtn = orm.basicDataDelete(sType, iID)
     rtnFront = {
         "code": 20000,
         "data": rtn
@@ -155,7 +154,7 @@ def basicDataNew():
     para = json.loads(sPara)
     sType = para["dataType"]
     para = para["data"]
-    rtn = data.basicDataNew(sType, para)
+    rtn = orm.basicDataNew(sType, para)
     rtnFront = {
         "code": 20000,
         "data": rtn
@@ -173,7 +172,7 @@ def basicDataModify():
     para = json.loads(sPara)
     sType = para["dataType"]
     para = para["data"]
-    rtn = data.basicDataModify(sType, para)
+    rtn = orm.basicDataModify(sType, para)
     rtnFront = {
         "code": 20000,
         "data": rtn

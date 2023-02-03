@@ -18,6 +18,68 @@ class OrmOper():
             database=sett.serverDb
         ), echo=True)
 
+
+    def user_login(self, sUser, sPwd):
+        """
+        用户登录
+        """
+        rtnData = {
+            "result":False,                # 逻辑控制 True/False
+            "dataString":"",               # 字符串
+            "dataNumber":0,                # 数字
+            "info":"",                      # 信息
+            "entities": {}
+        }
+
+        rtnData["result"] = True
+        rtnData["entities"] = {
+            "token": "admin-token"
+        }
+
+        return rtnData
+
+
+    def user_info(self, sToken):
+        """
+        用户信息
+        """
+        rtnData = {
+            "result":False,                # 逻辑控制 True/False
+            "dataString":"",               # 字符串
+            "dataNumber":0,                # 数字
+            "info":"",                      # 信息
+            "entities": {}
+        }
+
+        rtnData["result"] = True
+        rtnData["entities"] = {
+            "roles": ["admin"],
+            "introduction": "I am a super administrator",
+            "avatar": "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
+            "name": "Cliff Wang"
+        }
+
+        return rtnData
+
+
+    def user_logout(self):
+        """
+        用户登出
+        """
+        rtnData = {
+            "result":False,                # 逻辑控制 True/False
+            "dataString":"",               # 字符串
+            "dataNumber":0,                # 数字
+            "info":"",                      # 信息
+            "entities": {}
+        }
+
+        rtnData["result"] = True
+        rtnData["entities"] = "success"
+
+        return rtnData
+
+
     def basicDataList(self, sType, sQuery, sPage):
         """
         获取基础资料
@@ -40,41 +102,31 @@ class OrmOper():
 
         iDb = False
         try:
+            # 检查查询条件有效性
             if len(sQuery) > 0:
                 dQuery = json.loads(sQuery)["para"]
             else:
                 dQuery = []
-            dPara = {}
+            dQuery = [line for line in dQuery if not (line["colname"]=="status" and line["value"] not in (0, 1))]
+            # 检查分页、排序条件有效性
             if len(sPage) > 0:
                 dPage = json.loads(sPage)
             else:
                 dPage = {"page": 1, "limit": 100}
+            if dPage.get("sortCol"):
+                if dPage.get("sortType") == "desc":
+                    pass
+                else:
+                    dPage["sortType"] = "asc"
+            # 连接数据库
             select_db = sessionmaker(self.engine)
             db_session = select_db()
             iDb = True
+            # 选择数据模型
             dataModel = None
             if sType == "category":
                 from ormModel import Category
                 dataModel = Category
-                """
-                iNum = dQuery.get("status")
-                if iNum is None:
-                    dPara["status"] = -1
-                else:
-                    if iNum == 0 or iNum == 1:
-                        dPara["status"] = iNum
-                    else:
-                        dPara["status"] = -1
-                sStr = dQuery.get("name")
-                if sStr is None:
-                    dPara["name"] = ""
-                else:
-                    sStr = sStr.strip()
-                    if len(sStr) > 0:
-                        dPara["name"] = sStr
-                    else:
-                        dPara["name"] = ""
-                """
             elif sType == "supplier":
                 from ormModel import Supplier
                 dataModel = Supplier
@@ -83,24 +135,28 @@ class OrmOper():
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
-            print(1)
-            rs1 = this._queryFilter(db_session, dataModel, dPara)
-            print(2)
-            rs2 = this._queryFilter(db_session, dataModel, dPara)
-            """
-            rs1 = db_session.query(dataModel)
-            rs2 = db_session.query(dataModel)
-            if dPara["status"] != -1:
-                rs1 = rs1.filter(dataModel.status == dPara["status"])
-                rs2 = rs2.filter(dataModel.status == dPara["status"])
-            if dPara["name"] != "":
-                rs1 = rs1.filter(dataModel.name.like("{name}%".format(name=dPara["name"])))
-                rs2 = rs2.filter(dataModel.name.like("{name}%".format(name=dPara["name"])))
-            """
-            rs1 = rs1.limit(dPage["limit"]).offset((dPage["page"] - 1) * dPage["limit"]).all()
-            rtnData["dataNumber"] = rs2.count()
+            # 加入查询条件
+            rtn = self._queryFilter(db_session, dataModel, dQuery)
+            if rtn["result"]:
+                objQuery = rtn["dataObj"]
+            else:
+                raise Exception(rtn["info"])
+            # 查询总记录条数
+            rtnData["dataNumber"] = objQuery.count()
+            # 排序处理
+            if dPage.get("sortCol"):
+                if dPage.get("sortType") == "desc":
+                    objQuery = objQuery.order_by(getattr(dataModel, dPage["sortCol"]).desc())
+                else:
+                    objQuery = objQuery.order_by(getattr(dataModel, dPage["sortCol"]).asc())
+            # 分页处理
+            if rtnData["dataNumber"] <= (dPage["page"] - 1) * dPage["limit"]:
+                dPage["page"] = 1
+            # 检索数据
+            rs = objQuery.limit(dPage["limit"]).offset((dPage["page"] - 1) * dPage["limit"]).all()
+            # 按特定格式返回数据
             rtnData["entities"][sType] = []
-            for obj in rs1:
+            for obj in rs:
                 row = {}
                 attr = [a for a in dir(obj) if not a.startswith("_") and a not in ('metadata', 'registry')]
                 for col in attr:
@@ -109,6 +165,13 @@ class OrmOper():
             if sType == "category":
                 for line in rtnData["entities"][sType]:
                     line["enum_status"] = "正常" if line["status"] == 1 else "无效"
+            elif sType == "supplier":
+                for line in rtnData["entities"][sType]:
+                    line["enum_status"] = "正常" if line["status"] == 1 else "无效"
+            elif sType == "goods":
+                for line in rtnData["entities"][sType]:
+                    line["enum_status"] = "正常" if line["status"] == 1 else "无效"
+            # 标记成功
             rtnData["result"] = True
             rtnData["info"] = "查询到{cnt}条记录.".format(cnt=rtnData["dataNumber"])
         except Exception as e:
@@ -123,7 +186,7 @@ class OrmOper():
 
     def _queryFilter(self, session, model, para):
         """
-        查询条件拼接
+        查询条件处理
         para:[
             "colname":      字段名,
             "oper":         比较方式,
@@ -151,36 +214,41 @@ class OrmOper():
             "entities": {}
         }
 
-        query = session.query(model)
-        for line in para:
-            objValue = line["value"]
-            if line["oper"] == ">":
-                query = query.filter(getattr(model, line["colname"]) > objValue)
-            elif line["oper"] == ">=":
-                query = query.filter(getattr(model, line["colname"]) >= objValue)
-            elif line["oper"] == "==":
-                query = query.filter(getattr(model, line["colname"]) == objValue)
-            elif line["oper"] == "<=":
-                query = query.filter(getattr(model, line["colname"]) <= objValue)
-            elif line["oper"] == "<":
-                query = query.filter(getattr(model, line["colname"]) < objValue)
-            elif line["oper"] == "!=":
-                query = query.filter(getattr(model, line["colname"]) != objValue)
-            elif line["oper"] == "between":
-                if type(objValue) in (list, tuple):
-                    if len(objValue) == 2:
-                        query = query.filter(getattr(model, line["colname"]).between(*objValue))
-            elif line["oper"] == "in":
-                if type(objValue) == list:
-                    query = query.filter(getattr(model, line["colname"]).in_(objValue))
-            elif line["oper"] == "not in":
-                if type(objValue) == list:
-                    query = query.filter(getattr(model, line["colname"]).notin_(objValue))
-            elif line["oper"] == "like":
-                if type(objValue) == str:
-                    query = query.filter(getattr(model, line["colname"]).like(objValue))
+        try:
+            objQuery = session.query(model)
+            for line in para:
+                objValue = line["value"]
+                if line["oper"] == ">":
+                    objQuery = objQuery.filter(getattr(model, line["colname"]) > objValue)
+                elif line["oper"] == ">=":
+                    objQuery = objQuery.filter(getattr(model, line["colname"]) >= objValue)
+                elif line["oper"] == "==":
+                    objQuery = objQuery.filter(getattr(model, line["colname"]) == objValue)
+                elif line["oper"] == "<=":
+                    objQuery = objQuery.filter(getattr(model, line["colname"]) <= objValue)
+                elif line["oper"] == "<":
+                    objQuery = objQuery.filter(getattr(model, line["colname"]) < objValue)
+                elif line["oper"] == "!=":
+                    objQuery = objQuery.filter(getattr(model, line["colname"]) != objValue)
+                elif line["oper"] == "between":
+                    if type(objValue) in (list, tuple):
+                        if len(objValue) == 2:
+                            objQuery = objQuery.filter(getattr(model, line["colname"]).between(*objValue))
+                elif line["oper"] == "in":
+                    if type(objValue) == list:
+                        objQuery = objQuery.filter(getattr(model, line["colname"]).in_(objValue))
+                elif line["oper"] == "not in":
+                    if type(objValue) == list:
+                        objQuery = objQuery.filter(getattr(model, line["colname"]).notin_(objValue))
+                elif line["oper"] == "like":
+                    if type(objValue) == str:
+                        objQuery = objQuery.filter(getattr(model, line["colname"]).like(objValue))
+            rtnData["result"] = True
+            rtnData["dataObj"] = objQuery
+        except Exception as e:
+            rtnData["info"] = str(e)
 
-        return query
+        return rtnData
 
 
     def basicDataDelete(self, sType, iID):
@@ -260,7 +328,7 @@ class OrmOper():
                 from ormModel import Supplier
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
-                elif len(para["name"].rstrip()) <= 4:
+                elif len(para["name"].rstrip()) < 4:
                     raise Exception("{title}名称长度至少4位.".format(title=sTitle))
                 elif len(para["name"].rstrip()) > 50:
                     raise Exception("{title}名称长度不能超过50.".format(title=sTitle))
@@ -280,7 +348,7 @@ class OrmOper():
             db_session.add(newObj)
             db_session.commit()
             rtnData["result"] = True
-            rtnData["dataNumber"] = 1
+            rtnData["dataNumber"] = newObj.id
             rtnData["info"] = "新增数据[{id}].".format(id=newObj.id)
         except Exception as e:
             rtnData["info"] = str(e)
