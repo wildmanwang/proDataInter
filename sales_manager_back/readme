@@ -1,5 +1,26 @@
-参考：
+## 参考
 sqlalchemy:
 https://blog.csdn.net/qq_41048831/article/details/127909190
 
-问题处理列表：
+## 问题处理列表
+
+## 已实现功能
+### 使用SQLAlchemy
+### 使用virtualenv
+### Flask
+#### Flask - request
+#### Flask - config
+
+## 待实现功能
+### Flask
+#### Flask - blueprint
+#### Flask - response
+#### Flask - 请求勾子
+#### Flask - cookie
+#### Flask - session
+#### Flask - 上下文
+#### Flask-migrate
+#### Flask-Session
+#### Flask-WTF
+#### Flask-Login
+#### Flask-OpenID

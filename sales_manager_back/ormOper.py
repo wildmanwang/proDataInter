@@ -10,13 +10,7 @@ import json
 class OrmOper():
     def __init__(self, sett):
         self.sett = sett
-        self.engine = create_engine("mysql+pymysql://{user}:{password}@{server}:{port}/{database}".format(
-            user=sett.serverUser,
-            password=sett.serverPwd,
-            server=sett.serverHost,
-            port=sett.serverPort,
-            database=sett.serverDb
-        ), echo=True)
+        self.engine = create_engine(sett.DATABASE_URI, echo=True)
 
 
     def user_login(self, sUser, sPwd):

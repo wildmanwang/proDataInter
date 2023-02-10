@@ -5,7 +5,6 @@ __author__ = "Cliff.wang"
 
 from interMysql import MYSQL
 import os
-from myTools import MyJSONEncoder
 import json
 
 

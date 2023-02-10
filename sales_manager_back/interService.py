@@ -16,20 +16,20 @@ rtnData = {
 """
 __author__ = "Cliff.wang"
 import json
-from flask import Flask, request
-from interConfig import Settings
+from flask import Flask, request, jsonify
+import config
 from ormOper import OrmOper
-from myTools import MyJSONEncoder
 
-sett = Settings()
+sett = config.DevelopmentConfig()
 orm = OrmOper(sett)
-server = Flask(__name__)
+app = Flask(__name__)
+app.config.from_object(sett)
 
-@server.route('/hello', methods=['get', 'post'])
+@app.route('/hello', methods=['get', 'post'])
 def home():
     return "这里是石将军数据服务接口"
 
-@server.route('/orm_test', methods=['get', 'post'])
+@app.route('/orm_test', methods=['get', 'post'])
 def orm_test():
     sType = "category"
     para = {"id": 46, "name": "哈哈哈", "order_num": 22, "status": 1, "remark": "2222"}
@@ -37,7 +37,7 @@ def orm_test():
 
     return rtn["info"]
 
-@server.route('/test', methods=['post'])
+@app.route('/test', methods=['post'])
 def test():
     """
     :return:
@@ -62,22 +62,24 @@ def test():
     rtnData["entities"]["test"].append(("002", "李四", "女"))
     rtnData["entities"]["test"].append(("003", "王五", "男"))
 
-    return json.dumps(rtnData, ensure_ascii=False)
+    return jsonify(rtnData)
 
-@server.route( '/user/login', methods=['post'])
+@app.route( '/user/login', methods=['post'])
 def user_login():
     """
     登录
     """
+    print("**request.url:{con}".format(con=request.url))
+    print("**request.form:{con}".format(con=request.form))
     rtn = orm.user_login("0001", "123456")
     rtnFront = {
         "code": 20000,
         "data": rtn["entities"]
     }
 
-    return json.dumps(rtnFront, cls=MyJSONEncoder, ensure_ascii=False)
+    return jsonify(rtnFront)
 
-@server.route( '/user/info', methods=['get'])
+@app.route( '/user/info', methods=['get'])
 def user_info():
     """
     登录
@@ -89,9 +91,9 @@ def user_info():
         "data": rtn["entities"]
     }
 
-    return json.dumps(rtnFront, cls=MyJSONEncoder, ensure_ascii=False)
+    return jsonify(rtnFront)
 
-@server.route( '/user/logout', methods=['post'])
+@app.route( '/user/logout', methods=['post'])
 def user_logout():
     """
     登出
@@ -102,19 +104,17 @@ def user_logout():
         "data": rtn["entities"]
     }
 
-    return json.dumps(rtnFront, cls=MyJSONEncoder, ensure_ascii=False)
+    return jsonify(rtnFront)
 
-@server.route('/basicDataList', methods=['get'])
+@app.route('/basicDataList', methods=['get'])
 def basicDataList():
     """
     获取基础资料
     :return:
     """
-
     sType = request.args.get("dataType").strip()
     sQuery = request.args.get("query").strip()
     sPage = request.args.get("page").strip()
-    print(sPage)
     rtn = orm.basicDataList(sType, sQuery, sPage)
     rtnFront = {
         "code": 20000,
@@ -124,15 +124,14 @@ def basicDataList():
         }
     }
 
-    return json.dumps(rtnFront, cls=MyJSONEncoder, ensure_ascii=False)
+    return jsonify(rtnFront)
 
-@server.route('/basicDataDelete', methods=['post'])
+@app.route('/basicDataDelete', methods=['post'])
 def basicDataDelete():
     """
     删除基础资料
     """
-    import json
-    sPara = request.get_data().decode("utf-8")
+    sPara = request.get_data()
     para = json.loads(sPara)
     sType = para["dataType"]
     iID = para["id"]
@@ -142,15 +141,14 @@ def basicDataDelete():
         "data": rtn
     }
 
-    return json.dumps(rtnFront, cls=MyJSONEncoder, ensure_ascii=False)
+    return jsonify(rtnFront)
 
-@server.route('/basicDataNew', methods=['post'])
+@app.route('/basicDataNew', methods=['post'])
 def basicDataNew():
     """
     新增基础资料
     """
-    import json
-    sPara = request.get_data().decode("utf-8")
+    sPara = request.get_data()
     para = json.loads(sPara)
     sType = para["dataType"]
     para = para["data"]
@@ -160,15 +158,14 @@ def basicDataNew():
         "data": rtn
     }
 
-    return json.dumps(rtnFront, cls=MyJSONEncoder, ensure_ascii=False)
+    return jsonify(rtnFront)
 
-@server.route('/basicDataModify', methods=['post'])
+@app.route('/basicDataModify', methods=['post'])
 def basicDataModify():
     """
     修改基础资料
     """
-    import json
-    sPara = request.get_data().decode("utf-8")
+    sPara = request.get_data()
     para = json.loads(sPara)
     sType = para["dataType"]
     para = para["data"]
@@ -178,7 +175,7 @@ def basicDataModify():
         "data": rtn
     }
 
-    return json.dumps(rtnFront, cls=MyJSONEncoder, ensure_ascii=False)
+    return jsonify(rtnFront)
 
 if __name__ == '__main__':
-    server.run(host=sett.webHost, port=sett.webPort, debug=True)
+    app.run(host=app.config["WEB_SERVER_HOST"], port=app.config["WEB_SERVER_PORT"], debug=True)
