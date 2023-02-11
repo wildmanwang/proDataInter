@@ -16,6 +16,9 @@ class Config(object):
     WEB_SERVER_HOST = ""
     WEB_SERVER_PORT = ""
 
+    # 秘钥，Session等模块需要用到
+    SECRET_KEY = "dsfao85238792lk2,-1"
+
     @property
     def DATABASE_URI(self):
         return r"mysql+pymysql://{user}:{password}@{host}:{port}/{database}".format(

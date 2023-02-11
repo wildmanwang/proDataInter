@@ -16,7 +16,7 @@ rtnData = {
 """
 __author__ = "Cliff.wang"
 import json
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 import config
 from ormOper import OrmOper
 
@@ -37,40 +37,16 @@ def orm_test():
 
     return rtn["info"]
 
-@app.route('/test', methods=['post'])
+@app.route('/test', methods=['get', 'post'])
 def test():
-    """
-    :return:
-    """
-    rtnData = {
-        "result": True,     # 逻辑控制 True/False
-        "dataString": "",   # 字符串
-        "dataNumber": 1,    # 数字
-        "info": "",         # 信息
-        "entities": {       # 表体集
-            "test": []  # 销售单
-        }
-    }
-    print(request.get_data())
-    # print(request.form) 
-    # print(request.args)
-    # print(request.values)
-    # print(request.form.to_dict())
-    for i in request.form.to_dict():
-        print(json.loads(i, encoding="utf-8")["dataType"])
-    rtnData["entities"]["test"].append(("001", "张三", "女"))
-    rtnData["entities"]["test"].append(("002", "李四", "女"))
-    rtnData["entities"]["test"].append(("003", "王五", "男"))
-
-    return jsonify(rtnData)
+    session["username"] = "张三三"
+    return session.get("username")
 
 @app.route( '/user/login', methods=['post'])
 def user_login():
     """
     登录
     """
-    print("**request.url:{con}".format(con=request.url))
-    print("**request.form:{con}".format(con=request.form))
     rtn = orm.user_login("0001", "123456")
     rtnFront = {
         "code": 20000,

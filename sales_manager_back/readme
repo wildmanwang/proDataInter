@@ -10,14 +10,15 @@ https://blog.csdn.net/qq_41048831/article/details/127909190
 ### Flask
 #### Flask - request
 #### Flask - config
+#### Flask - response
+#### Flask - session
+#### Flask - cookie
+#### Flask - route
 
 ## 待实现功能
 ### Flask
 #### Flask - blueprint
-#### Flask - response
 #### Flask - 请求勾子
-#### Flask - cookie
-#### Flask - session
 #### Flask - 上下文
 #### Flask-migrate
 #### Flask-Session
