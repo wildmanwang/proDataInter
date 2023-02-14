@@ -16,26 +16,26 @@ rtnData = {
 """
 __author__ = "Cliff.wang"
 import json
-from flask import Flask, request, jsonify, session
 import config
+from sqlalchemy import create_engine
+sett = config.DevelopmentConfig()
+
+engine = create_engine(sett.DATABASE_URI, echo=True)
+
+from flask import Flask, request, jsonify, session
+from admin import admin
+from goods import goods
 from ormOper import OrmOper
 
-sett = config.DevelopmentConfig()
 orm = OrmOper(sett)
 app = Flask(__name__)
 app.config.from_object(sett)
+app.register_blueprint(admin)
+app.register_blueprint(goods)
 
 @app.route('/hello', methods=['get', 'post'])
 def home():
     return "这里是石将军数据服务接口"
-
-@app.route('/orm_test', methods=['get', 'post'])
-def orm_test():
-    sType = "category"
-    para = {"id": 46, "name": "哈哈哈", "order_num": 22, "status": 1, "remark": "2222"}
-    rtn = orm.basicDataModify(sType, para)
-
-    return rtn["info"]
 
 @app.route('/test', methods=['get', 'post'])
 def test():
@@ -78,77 +78,6 @@ def user_logout():
     rtnFront = {
         "code": 20000,
         "data": rtn["entities"]
-    }
-
-    return jsonify(rtnFront)
-
-@app.route('/basicDataList', methods=['get'])
-def basicDataList():
-    """
-    获取基础资料
-    :return:
-    """
-    sType = request.args.get("dataType").strip()
-    sQuery = request.args.get("query").strip()
-    sPage = request.args.get("page").strip()
-    rtn = orm.basicDataList(sType, sQuery, sPage)
-    rtnFront = {
-        "code": 20000,
-        "data": {
-            "total": rtn["dataNumber"],
-            "items": rtn["entities"][sType]
-        }
-    }
-
-    return jsonify(rtnFront)
-
-@app.route('/basicDataDelete', methods=['post'])
-def basicDataDelete():
-    """
-    删除基础资料
-    """
-    sPara = request.get_data()
-    para = json.loads(sPara)
-    sType = para["dataType"]
-    iID = para["id"]
-    rtn = orm.basicDataDelete(sType, iID)
-    rtnFront = {
-        "code": 20000,
-        "data": rtn
-    }
-
-    return jsonify(rtnFront)
-
-@app.route('/basicDataNew', methods=['post'])
-def basicDataNew():
-    """
-    新增基础资料
-    """
-    sPara = request.get_data()
-    para = json.loads(sPara)
-    sType = para["dataType"]
-    para = para["data"]
-    rtn = orm.basicDataNew(sType, para)
-    rtnFront = {
-        "code": 20000,
-        "data": rtn
-    }
-
-    return jsonify(rtnFront)
-
-@app.route('/basicDataModify', methods=['post'])
-def basicDataModify():
-    """
-    修改基础资料
-    """
-    sPara = request.get_data()
-    para = json.loads(sPara)
-    sType = para["dataType"]
-    para = para["data"]
-    rtn = orm.basicDataModify(sType, para)
-    rtnFront = {
-        "code": 20000,
-        "data": rtn
     }
 
     return jsonify(rtnFront)

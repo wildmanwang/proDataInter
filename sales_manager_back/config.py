@@ -3,6 +3,7 @@
 added at 2023-02-10 by Cliff Wang
 """
 
+
 class Config(object):
     DEBUG = False
     TESTING = False
@@ -18,6 +19,7 @@ class Config(object):
 
     # 秘钥，Session等模块需要用到
     SECRET_KEY = "dsfao85238792lk2,-1"
+
 
     @property
     def DATABASE_URI(self):
