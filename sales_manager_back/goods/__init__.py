@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-goods = Blueprint("goods", __name__, url_prefix="/goods")
+goods = Blueprint("goods", __name__)
 
-from . import models, control, views
+from . import views
 __all__ = ["models", "control", "views"]

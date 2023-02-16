@@ -21,7 +21,6 @@ def basicDataList():
     sQuery = request.args.get("query").strip()
     sPage = request.args.get("page").strip()
     rtn = ctl.basicDataList(sType, sQuery, sPage)
-    print(rtn)
     rtnFront = {
         "code": 20000,
         "data": {
@@ -31,6 +30,7 @@ def basicDataList():
     }
 
     return jsonify(rtnFront)
+
 
 @goods.route('/basicDataDelete', methods=['post'])
 def basicDataDelete():
@@ -49,6 +49,7 @@ def basicDataDelete():
 
     return jsonify(rtnFront)
 
+
 @goods.route('/basicDataNew', methods=['post'])
 def basicDataNew():
     """
@@ -65,6 +66,7 @@ def basicDataNew():
     }
 
     return jsonify(rtnFront)
+
 
 @goods.route('/basicDataModify', methods=['post'])
 def basicDataModify():

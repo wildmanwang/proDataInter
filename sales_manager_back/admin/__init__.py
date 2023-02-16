@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-admin = Blueprint("admin", __name__, url_prefix="")
+admin = Blueprint("admin", __name__)
 
-from . import models, control, views
+from admin import views
 __all__ = ["models", "control", "views"]
