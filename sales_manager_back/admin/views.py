@@ -1,4 +1,4 @@
-from . import admin, control
+from admin import admin, control
 from interService import engine
 from flask import request, jsonify
 import json

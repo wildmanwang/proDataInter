@@ -16,13 +16,14 @@ rtnData = {
 """
 __author__ = "Cliff.wang"
 import json
-import config
 from sqlalchemy import create_engine
+from flask import Flask, request, jsonify, session
+
+import config
 sett = config.DevelopmentConfig()
 
 engine = create_engine(sett.DATABASE_URI, echo=True)
 
-from flask import Flask, request, jsonify, session
 from admin import admin
 from goods import goods
 

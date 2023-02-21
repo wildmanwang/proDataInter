@@ -5,8 +5,10 @@ __author__ = "Cliff.wang"
 
 from sqlalchemy.orm import sessionmaker
 import json
+from ormBase import OrmBase
 
-class ctl_goods():
+
+class ctl_goods(OrmBase):
     def __init__(self, engine):
         self.engine = engine
 
@@ -56,18 +58,18 @@ class ctl_goods():
             # 选择数据模型
             dataModel = None
             if sType == "category":
-                from ormModel import Category
+                from .models import Category
                 dataModel = Category
             elif sType == "supplier":
-                from ormModel import Supplier
+                from .models import Supplier
                 dataModel = Supplier
             elif sType == "goods":
-                from ormModel import Goods
+                from .models import Goods
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
             # 加入查询条件
-            rtn = self._queryFilter(db_session, dataModel, dQuery)
+            rtn = self.queryFilter(db_session, dataModel, dQuery)
             if rtn["result"]:
                 objQuery = rtn["dataObj"]
             else:
@@ -115,73 +117,6 @@ class ctl_goods():
         return rtnData
 
 
-    def _queryFilter(self, session, model, para):
-        """
-        查询条件处理
-        para:[
-            "colname":      字段名,
-            "oper":         比较方式,
-            "value":        值
-        ]
-        枚举：
-            比较方式            值
-            >                   3 or date or datetime
-            >=                  3 or date or datetime
-            ==                  3 or "abc" or date or datetime
-            <=                  3 or date or datetime
-            <                   3 or date or datetime
-            !=                  3 or "abc" or date or datetime
-            between             (1, 3) or (date1, date2) or (time1, time2)
-            in                  [1, 3, 9] or ["a", "bb", "f"] or [date1, date2, date3]
-            not in              [1, 3, 9] or ["a", "bb", "f"] or [date1, date2, date3]
-            like                "a%" or "%a" or "%a%"
-        """
-        rtnData = {
-            "result":False,                # 逻辑控制 True/False
-            "dataString":"",               # 字符串
-            "dataNumber":0,                # 数字
-            "dataObj":None,
-            "info":"",                      # 信息
-            "entities": {}
-        }
-
-        try:
-            objQuery = session.query(model)
-            for line in para:
-                objValue = line["value"]
-                if line["oper"] == ">":
-                    objQuery = objQuery.filter(getattr(model, line["colname"]) > objValue)
-                elif line["oper"] == ">=":
-                    objQuery = objQuery.filter(getattr(model, line["colname"]) >= objValue)
-                elif line["oper"] == "==":
-                    objQuery = objQuery.filter(getattr(model, line["colname"]) == objValue)
-                elif line["oper"] == "<=":
-                    objQuery = objQuery.filter(getattr(model, line["colname"]) <= objValue)
-                elif line["oper"] == "<":
-                    objQuery = objQuery.filter(getattr(model, line["colname"]) < objValue)
-                elif line["oper"] == "!=":
-                    objQuery = objQuery.filter(getattr(model, line["colname"]) != objValue)
-                elif line["oper"] == "between":
-                    if type(objValue) in (list, tuple):
-                        if len(objValue) == 2:
-                            objQuery = objQuery.filter(getattr(model, line["colname"]).between(*objValue))
-                elif line["oper"] == "in":
-                    if type(objValue) == list:
-                        objQuery = objQuery.filter(getattr(model, line["colname"]).in_(objValue))
-                elif line["oper"] == "not in":
-                    if type(objValue) == list:
-                        objQuery = objQuery.filter(getattr(model, line["colname"]).notin_(objValue))
-                elif line["oper"] == "like":
-                    if type(objValue) == str:
-                        objQuery = objQuery.filter(getattr(model, line["colname"]).like(objValue))
-            rtnData["result"] = True
-            rtnData["dataObj"] = objQuery
-        except Exception as e:
-            rtnData["info"] = str(e)
-
-        return rtnData
-
-
     def basicDataDelete(self, sType, iID):
         """
         删除基础资料
@@ -201,13 +136,13 @@ class ctl_goods():
             iDb = True
             dataModel = None
             if sType == "category":
-                from ormModel import Category
+                from .models import Category
                 dataModel = Category
             elif sType == "supplier":
-                from ormModel import Supplier
+                from .models import Supplier
                 dataModel = Supplier
             elif sType == "goods":
-                from ormModel import Goods
+                from .models import Goods
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
@@ -246,7 +181,7 @@ class ctl_goods():
             dataModel = None
             if sType == "category":
                 sTitle = "类别"
-                from ormModel import Category
+                from .models import Category
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
                 elif len(para["name"].rstrip()) <= 2:
@@ -256,7 +191,7 @@ class ctl_goods():
                 newObj = Category(para)
             elif sType == "supplier":
                 sTitle = "供应商"
-                from ormModel import Supplier
+                from .models import Supplier
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
                 elif len(para["name"].rstrip()) < 4:
@@ -266,7 +201,7 @@ class ctl_goods():
                 newObj = Supplier(para)
             elif sType == "goods":
                 sTitle = "商品"
-                from ormModel import Goods
+                from .models import Goods
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
                 elif len(para["name"].rstrip()) <= 5:
@@ -309,13 +244,13 @@ class ctl_goods():
             iDb = True
             dataModel = None
             if sType == "category":
-                from ormModel import Category
+                from .models import Category
                 dataModel = Category
             elif sType == "supplier":
-                from ormModel import Supplier
+                from .models import Supplier
                 dataModel = Supplier
             elif sType == "goods":
-                from ormModel import Goods
+                from .models import Goods
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))

@@ -16,11 +16,11 @@ https://blog.csdn.net/qq_41048831/article/details/127909190
 #### Flask - route
 #### Flask - blueprint
 #### Flask - 请求勾子
+#### Flask - 上下文
 
 ## 待实现功能
 ### Flask
-#### Flask - 上下文
-#### url_for
+#### DB连接池和线程安全
 #### Flask-migrate
 #### Flask-Session
 #### Flask-WTF

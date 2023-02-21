@@ -1,4 +1,4 @@
-from . import goods, control
+from goods import goods, control
 from interService import engine
 from flask import request, jsonify
 import json
