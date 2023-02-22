@@ -1,9 +1,9 @@
 from goods import goods, control
-from interService import engine
+from interService import sett
 from flask import request, jsonify
 import json
 
-ctl = control.ctl_goods(engine)
+ctl = control.ctl_goods(sett)
 
 
 @goods.route("/", methods=["get", "post"])

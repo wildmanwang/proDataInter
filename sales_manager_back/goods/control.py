@@ -3,14 +3,16 @@
 """
 __author__ = "Cliff.wang"
 
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import create_engine
 import json
 from ormBase import OrmBase
 
 
 class ctl_goods(OrmBase):
-    def __init__(self, engine):
-        self.engine = engine
+    def __init__(self, sett):
+        self.sett = sett
+        self.engine = create_engine(self.sett.DATABASE_URI, echo=True, pool_pre_ping=True)
 
 
     def basicDataList(self, sType, sQuery, sPage):
@@ -53,7 +55,7 @@ class ctl_goods(OrmBase):
                     dPage["sortType"] = "asc"
             # 连接数据库
             select_db = sessionmaker(self.engine)
-            db_session = select_db()
+            db_session = scoped_session(select_db)
             iDb = True
             # 选择数据模型
             dataModel = None
@@ -132,7 +134,7 @@ class ctl_goods(OrmBase):
         iDb = False
         try:
             select_db = sessionmaker(self.engine)
-            db_session = select_db()
+            db_session = scoped_session(select_db)
             iDb = True
             dataModel = None
             if sType == "category":
@@ -176,7 +178,7 @@ class ctl_goods(OrmBase):
         iDb = False
         try:
             select_db = sessionmaker(self.engine)
-            db_session = select_db()
+            db_session = scoped_session(select_db)
             iDb = True
             dataModel = None
             if sType == "category":
@@ -240,7 +242,7 @@ class ctl_goods(OrmBase):
         iDb = False
         try:
             select_db = sessionmaker(self.engine)
-            db_session = select_db()
+            db_session = scoped_session(select_db)
             iDb = True
             dataModel = None
             if sType == "category":

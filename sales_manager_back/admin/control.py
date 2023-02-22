@@ -3,12 +3,14 @@
 """
 __author__ = "Cliff.wang"
 
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import create_engine
 import json
 
 class ctl_admin():
-    def __init__(self, engine):
-        self.engine = engine
+    def __init__(self, sett):
+        self.sett = sett
+        self.engine = create_engine(self.sett.DATABASE_URI, echo=True, pool_pre_ping=True)
 
 
     def user_login(self, sUser, sPwd):

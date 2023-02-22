@@ -1,9 +1,9 @@
 from admin import admin, control
-from interService import engine
+from interService import sett
 from flask import request, jsonify
 import json
 
-ctl = control.ctl_admin(engine)
+ctl = control.ctl_admin(sett)
 
 
 @admin.route("/", methods=["get", "post"])

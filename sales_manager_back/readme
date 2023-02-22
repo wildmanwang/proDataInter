@@ -17,12 +17,12 @@ https://blog.csdn.net/qq_41048831/article/details/127909190
 #### Flask - blueprint
 #### Flask - 请求勾子
 #### Flask - 上下文
+#### DB连接池和线程安全
 
 ## 待实现功能
 ### Flask
-#### DB连接池和线程安全
+#### Flask-Login
 #### Flask-migrate
 #### Flask-Session
 #### Flask-WTF
-#### Flask-Login
 #### Flask-OpenID
