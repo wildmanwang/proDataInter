@@ -1,5 +1,5 @@
 from goods import goods, control
-from interService import sett
+from backApp import sett
 from flask import request, jsonify
 import json
 
