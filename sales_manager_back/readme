@@ -18,12 +18,12 @@ https://blog.csdn.net/qq_41048831/article/details/127909190
 #### Flask - 请求勾子
 #### Flask - 上下文
 #### DB连接池和线程安全
+#### Flask-Login
 
 ## 待实现功能
 ### Flask
-#### Flask-Login
-https://blog.csdn.net/apamaaaa/article/details/120130957
-https://www.codenong.com/cs106964256/
+#### 数据访问优化
+#### 登录前后端+记住我
 #### Flask-migrate
 #### Flask-Session
 #### Flask-WTF

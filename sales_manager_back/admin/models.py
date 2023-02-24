@@ -7,12 +7,13 @@ from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
 
 Base = declarative_base()
 
 
-class User(Base):
+class User(Base, UserMixin):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增主键ID")
     name = Column(String(20), default=None, nullable=False, comment="姓名")
@@ -28,12 +29,14 @@ class User(Base):
             if hasattr(self, key):
                 setattr(self, key, items[key])
 
+    # 创建可读属性
     @property
     def password(self):
-        return self._password
+        return ''
     
+    # 创建可写属性 需要先有可用属性，没有的话，通过@property创建
     @password.setter
-    def password_set(self, value):
+    def password(self, value):
         self._password = generate_password_hash(value)
     
     def password_check(self, user_input):

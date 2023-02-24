@@ -16,7 +16,7 @@ def user_login():
     """
     登录
     """
-    rtn = ctl.user_login("0001", "123456")
+    rtn = ctl.user_login("Cliff Wang", "123456")
     rtnFront = {
         "code": 20000,
         "data": rtn["entities"]
@@ -30,6 +30,7 @@ def user_info():
     """
     登录
     """
+    print(request.args)
     sToken = request.args.get("token").strip()
     rtn = ctl.user_info(sToken)
     rtnFront = {

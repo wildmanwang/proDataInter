@@ -60,13 +60,13 @@ class ctl_goods(OrmBase):
             # 选择数据模型
             dataModel = None
             if sType == "category":
-                from .models import Category
+                from goods.models import Category
                 dataModel = Category
             elif sType == "supplier":
-                from .models import Supplier
+                from goods.models import Supplier
                 dataModel = Supplier
             elif sType == "goods":
-                from .models import Goods
+                from goods.models import Goods
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
@@ -138,13 +138,13 @@ class ctl_goods(OrmBase):
             iDb = True
             dataModel = None
             if sType == "category":
-                from .models import Category
+                from goods.models import Category
                 dataModel = Category
             elif sType == "supplier":
-                from .models import Supplier
+                from goods.models import Supplier
                 dataModel = Supplier
             elif sType == "goods":
-                from .models import Goods
+                from goods.models import Goods
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
@@ -183,7 +183,7 @@ class ctl_goods(OrmBase):
             dataModel = None
             if sType == "category":
                 sTitle = "类别"
-                from .models import Category
+                from goods.models import Category
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
                 elif len(para["name"].rstrip()) <= 2:
@@ -193,7 +193,7 @@ class ctl_goods(OrmBase):
                 newObj = Category(para)
             elif sType == "supplier":
                 sTitle = "供应商"
-                from .models import Supplier
+                from goods.models import Supplier
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
                 elif len(para["name"].rstrip()) < 4:
@@ -203,7 +203,7 @@ class ctl_goods(OrmBase):
                 newObj = Supplier(para)
             elif sType == "goods":
                 sTitle = "商品"
-                from .models import Goods
+                from goods.models import Goods
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
                 elif len(para["name"].rstrip()) <= 5:
@@ -246,13 +246,13 @@ class ctl_goods(OrmBase):
             iDb = True
             dataModel = None
             if sType == "category":
-                from .models import Category
+                from goods.models import Category
                 dataModel = Category
             elif sType == "supplier":
-                from .models import Supplier
+                from goods.models import Supplier
                 dataModel = Supplier
             elif sType == "goods":
-                from .models import Goods
+                from goods.models import Goods
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))

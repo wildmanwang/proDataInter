@@ -17,17 +17,28 @@ rtnData = {
 __author__ = "Cliff.wang"
 import json
 from flask import Flask, request, jsonify, session
+from flask_login import LoginManager
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import create_engine
 
 import config
+
 sett = config.DevelopmentConfig()
 
 from admin import admin
 from goods import goods
+from admin.control import ctl_admin
+from admin.models import User
 
 app = Flask(__name__)
 app.config.from_object(sett)
 app.register_blueprint(admin, url_prefix='')
 app.register_blueprint(goods, url_prefix='/goods')
+
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+login_manager.login_message_category = "info"
+login_manager.login_message = "Access denied."
 
 
 @app.route('/hello', methods=['get', 'post'])
@@ -39,6 +50,27 @@ def home():
 def test():
     session["username"] = "张三三"
     return session.get("username")
+
+
+@login_manager.user_loader
+def load_user(id):
+    """加载用户"""
+    iDb = False
+    user = None
+    try:
+        engine = create_engine(sett.DATABASE_URI, echo=True, pool_pre_ping=True)
+        select_db = sessionmaker(engine)
+        db_session = scoped_session(select_db)
+        iDb = True
+        user = db_session.query(User).filter(User.id==int(id)).first()
+    except Exception as e:
+        rtnData["info"] = str(e)
+        print(rtnData["info"])
+    finally:
+        if iDb:
+            db_session.close()
+    
+    return user
 
 
 if __name__ == '__main__':

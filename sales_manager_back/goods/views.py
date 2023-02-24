@@ -2,6 +2,7 @@ from goods import goods, control
 from backApp import sett
 from flask import request, jsonify
 import json
+from flask_login import login_required
 
 ctl = control.ctl_goods(sett)
 
@@ -12,6 +13,7 @@ def hello():
 
 
 @goods.route('/basicDataList', methods=['get'])
+@login_required
 def basicDataList():
     """
     获取基础资料
@@ -33,6 +35,7 @@ def basicDataList():
 
 
 @goods.route('/basicDataDelete', methods=['post'])
+@login_required
 def basicDataDelete():
     """
     删除基础资料
@@ -51,6 +54,7 @@ def basicDataDelete():
 
 
 @goods.route('/basicDataNew', methods=['post'])
+@login_required
 def basicDataNew():
     """
     新增基础资料
@@ -69,6 +73,7 @@ def basicDataNew():
 
 
 @goods.route('/basicDataModify', methods=['post'])
+@login_required
 def basicDataModify():
     """
     修改基础资料
