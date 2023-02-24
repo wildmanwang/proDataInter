@@ -4,17 +4,11 @@
 __author__ = "Cliff.wang"
 
 from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import create_engine
 import json
 from ormBase import OrmBase
 
 
 class ctl_goods(OrmBase):
-    def __init__(self, sett):
-        self.sett = sett
-        self.engine = create_engine(self.sett.DATABASE_URI, echo=True, pool_pre_ping=True)
-
-
     def basicDataList(self, sType, sQuery, sPage):
         """
         获取基础资料
@@ -35,14 +29,12 @@ class ctl_goods(OrmBase):
             "entities": {}
         }
 
-        iDb = False
         try:
             # 检查查询条件有效性
             if len(sQuery) > 0:
                 dQuery = json.loads(sQuery)["para"]
             else:
                 dQuery = []
-            dQuery = [line for line in dQuery if not (line["colname"]=="status" and line["value"] not in (0, 1))]
             # 检查分页、排序条件有效性
             if len(sPage) > 0:
                 dPage = json.loads(sPage)
@@ -53,50 +45,29 @@ class ctl_goods(OrmBase):
                     pass
                 else:
                     dPage["sortType"] = "asc"
-            # 连接数据库
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            iDb = True
             # 选择数据模型
             dataModel = None
             if sType == "category":
                 from goods.models import Category
                 dataModel = Category
+                dQuery = [line for line in dQuery if not (line["colname"]=="status" and line["value"] not in (0, 1))]
             elif sType == "supplier":
                 from goods.models import Supplier
                 dataModel = Supplier
+                dQuery = [line for line in dQuery if not (line["colname"]=="status" and line["value"] not in (0, 1))]
             elif sType == "goods":
                 from goods.models import Goods
                 dataModel = Goods
+                dQuery = [line for line in dQuery if not (line["colname"]=="status" and line["value"] not in (0, 1))]
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
-            # 加入查询条件
-            rtn = self.queryFilter(db_session, dataModel, dQuery)
-            if rtn["result"]:
-                objQuery = rtn["dataObj"]
-            else:
+            # 查询数据
+            rtn = self.singleDataList(dataModel, dQuery, dPage)
+            if not rtn["result"]:
                 raise Exception(rtn["info"])
-            # 查询总记录条数
-            rtnData["dataNumber"] = objQuery.count()
-            # 排序处理
-            if dPage.get("sortCol"):
-                if dPage.get("sortType") == "desc":
-                    objQuery = objQuery.order_by(getattr(dataModel, dPage["sortCol"]).desc())
-                else:
-                    objQuery = objQuery.order_by(getattr(dataModel, dPage["sortCol"]).asc())
-            # 分页处理
-            if rtnData["dataNumber"] <= (dPage["page"] - 1) * dPage["limit"]:
-                dPage["page"] = 1
-            # 检索数据
-            rs = objQuery.limit(dPage["limit"]).offset((dPage["page"] - 1) * dPage["limit"]).all()
-            # 按特定格式返回数据
-            rtnData["entities"][sType] = []
-            for obj in rs:
-                row = {}
-                attr = [a for a in dir(obj) if not a.startswith("_") and a not in ('metadata', 'registry')]
-                for col in attr:
-                    row[col] = getattr(obj, col)
-                rtnData["entities"][sType].append(row)
+            rtnData["dataNumber"] = rtn["dataNumber"]
+            rtnData["entities"][sType] = rtn["entities"]["single"]
+            # 结果集特殊处理
             if sType == "category":
                 for line in rtnData["entities"][sType]:
                     line["enum_status"] = "正常" if line["status"] == 1 else "无效"
@@ -111,10 +82,8 @@ class ctl_goods(OrmBase):
             rtnData["info"] = "查询到{cnt}条记录.".format(cnt=rtnData["dataNumber"])
         except Exception as e:
             rtnData["info"] = str(e)
-            print(rtnData["info"])
         finally:
-            if iDb:
-                db_session.close()
+            pass
         
         return rtnData
 
@@ -131,11 +100,7 @@ class ctl_goods(OrmBase):
             "entities": {}
         }
 
-        iDb = False
         try:
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            iDb = True
             dataModel = None
             if sType == "category":
                 from goods.models import Category
@@ -148,16 +113,11 @@ class ctl_goods(OrmBase):
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
-            icnt = db_session.query(dataModel).filter(dataModel.id==iID).delete()
-            db_session.commit()
-            rtnData["result"] = True
-            rtnData["dataNumber"] = icnt
-            rtnData["info"] = "数据[{id}]已成功删除.".format(id=iID)
+            rtnData = self.singleDataDelete(dataModel, iID)
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            if iDb:
-                db_session.close()
+            pass
 
         return rtnData
 
@@ -175,12 +135,7 @@ class ctl_goods(OrmBase):
         }
 
         sTitle = ""
-        iDb = False
         try:
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            iDb = True
-            dataModel = None
             if sType == "category":
                 sTitle = "类别"
                 from goods.models import Category
@@ -213,16 +168,11 @@ class ctl_goods(OrmBase):
                 newObj = Goods(para)
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
-            db_session.add(newObj)
-            db_session.commit()
-            rtnData["result"] = True
-            rtnData["dataNumber"] = newObj.id
-            rtnData["info"] = "新增数据[{id}].".format(id=newObj.id)
+            rtnData = self.singleDataNew(newObj)
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            if iDb:
-                db_session.close()
+            pass
 
         return rtnData
 
@@ -239,11 +189,7 @@ class ctl_goods(OrmBase):
             "entities": {}
         }
 
-        iDb = False
         try:
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            iDb = True
             dataModel = None
             if sType == "category":
                 from goods.models import Category
@@ -256,16 +202,10 @@ class ctl_goods(OrmBase):
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
-            obj = db_session.query(dataModel).filter(dataModel.id==para.get("id"))
-            icnt = obj.update(para)
-            db_session.commit()
-            rtnData["result"] = True
-            rtnData["dataNumber"] = icnt
-            rtnData["info"] = "数据[{id}]更新成功.".format(id=obj.first().id)
+            rtnData = self.singleDataModify(dataModel, para)
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            if iDb:
-                db_session.close()
+            pass
 
         return rtnData

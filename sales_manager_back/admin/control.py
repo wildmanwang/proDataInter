@@ -8,35 +8,9 @@ from sqlalchemy import create_engine
 import json
 from flask_login import login_user
 from admin.models import User
+from ormBase import OrmBase
 
-class ctl_admin():
-    def __init__(self, sett):
-        self.sett = sett
-        self.engine = create_engine(self.sett.DATABASE_URI, echo=True, pool_pre_ping=True)
-
-
-    def load_user(id):
-        """
-        获取用户
-        """
-
-        iDb = False
-        user = None
-        try:
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            iDb = True
-            user = db_session.query(User).filter(User.id==int(id)).first()
-        except Exception as e:
-            rtnData["info"] = str(e)
-            print(rtnData["info"])
-        finally:
-            if iDb:
-                db_session.close()
-        
-        return user
-
-
+class ctl_admin(OrmBase):
     def user_login(self, sUser, sPwd):
         """
         用户登录
