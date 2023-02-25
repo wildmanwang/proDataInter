@@ -23,13 +23,19 @@ def basicDataList():
     sQuery = request.args.get("query").strip()
     sPage = request.args.get("page").strip()
     rtn = ctl.basicDataList(sType, sQuery, sPage)
-    rtnFront = {
-        "code": 20000,
-        "data": {
-            "total": rtn["dataNumber"],
-            "items": rtn["entities"][sType]
+    if rtn["result"]:
+        rtnFront = {
+            "code": 20000,
+            "data": {
+                "total": rtn["dataNumber"],
+                "items": rtn["entities"][sType]
+            }
         }
-    }
+    else:
+        rtnFront = {
+            "code": 50006,
+            "message": rtn["info"]
+        }
 
     return jsonify(rtnFront)
 
@@ -45,10 +51,16 @@ def basicDataDelete():
     sType = para["dataType"]
     iID = para["id"]
     rtn = ctl.basicDataDelete(sType, iID)
-    rtnFront = {
-        "code": 20000,
-        "data": rtn
-    }
+    if rtn["result"]:
+        rtnFront = {
+            "code": 20000,
+            "data": rtn
+        }
+    else:
+        rtnFront = {
+            "code": 50006,
+            "message": rtn["info"]
+        }
 
     return jsonify(rtnFront)
 
@@ -64,10 +76,16 @@ def basicDataNew():
     sType = para["dataType"]
     para = para["data"]
     rtn = ctl.basicDataNew(sType, para)
-    rtnFront = {
-        "code": 20000,
-        "data": rtn
-    }
+    if rtn["result"]:
+        rtnFront = {
+            "code": 20000,
+            "data": rtn
+        }
+    else:
+        rtnFront = {
+            "code": 50006,
+            "message": rtn["info"]
+        }
 
     return jsonify(rtnFront)
 
@@ -83,9 +101,15 @@ def basicDataModify():
     sType = para["dataType"]
     para = para["data"]
     rtn = ctl.basicDataModify(sType, para)
-    rtnFront = {
-        "code": 20000,
-        "data": rtn
-    }
+    if rtn["result"]:
+        rtnFront = {
+            "code": 20000,
+            "data": rtn
+        }
+    else:
+        rtnFront = {
+            "code": 50006,
+            "message": rtn["info"]
+        }
 
     return jsonify(rtnFront)

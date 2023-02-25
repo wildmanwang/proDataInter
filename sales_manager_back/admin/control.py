@@ -5,10 +5,11 @@ __author__ = "Cliff.wang"
 
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy import create_engine
-import json
+import json, datetime
 from flask_login import login_user
 from admin.models import User
 from ormBase import OrmBase
+import jwt
 
 class ctl_admin(OrmBase):
     def user_login(self, sUser, sPwd):
@@ -31,9 +32,16 @@ class ctl_admin(OrmBase):
             if user is not None:
                 if user.password_check(sPwd):
                     login_user(user)
+                    jwtDic = {
+                        'exp': datetime.datetime.now() + datetime.timedelta(days=1),  # 过期时间
+                        'iss': 'Cliff Wang',  # 签名
+                        'data': {
+                            'username': sUser
+                        }
+                    }
                     rtnData["result"] = True
-                    rtnData["entities"] = {
-                        "token": "admin-token"
+                    rtnData["dataObject"] = {
+                        "token": jwt.encode(jwtDic, self.sett.SECRET_KEY, algorithm='HS256')  # 加密生成字符串
                     }
                 else:
                     rtnData["info"] = "密码错误"
@@ -41,7 +49,6 @@ class ctl_admin(OrmBase):
                 rtnData["info"] = "用户名错误：{name}".format(name=sUser)
         except Exception as e:
             rtnData["info"] = str(e)
-            print(rtnData["info"])
         finally:
             if iDb:
                 db_session.close()
@@ -62,11 +69,12 @@ class ctl_admin(OrmBase):
         }
 
         rtnData["result"] = True
-        rtnData["entities"] = {
+        jwtDic = jwt.decode(sToken, self.sett.SECRET_KEY, issuer='Cliff Wang', algorithms=['HS256'])
+        rtnData["dataObject"] = {
             "roles": ["admin"],
             "introduction": "I am a super administrator",
             "avatar": "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
-            "name": "Cliff Wang"
+            "name": jwtDic["data"]["username"]
         }
 
         return rtnData
@@ -85,6 +93,6 @@ class ctl_admin(OrmBase):
         }
 
         rtnData["result"] = True
-        rtnData["entities"] = "success"
+        rtnData["dataObject"] = "success"
 
         return rtnData

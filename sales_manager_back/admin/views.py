@@ -16,11 +16,20 @@ def user_login():
     """
     登录
     """
-    rtn = ctl.user_login("Cliff Wang", "123456")
-    rtnFront = {
-        "code": 20000,
-        "data": rtn["entities"]
-    }
+    sPara = request.get_data()
+    para = json.loads(sPara)
+    rtn = ctl.user_login(para["username"], para["password"])
+    if rtn["result"]:
+        rtnFront = {
+            "code": 20000,
+            "data": rtn["dataObject"],
+            "message": "登录成功"
+        }
+    else:
+        rtnFront = {
+            "code": 60006,
+            "message": rtn["info"]
+        }
 
     return jsonify(rtnFront)
 
@@ -33,10 +42,16 @@ def user_info():
     print(request.args)
     sToken = request.args.get("token").strip()
     rtn = ctl.user_info(sToken)
-    rtnFront = {
-        "code": 20000,
-        "data": rtn["entities"]
-    }
+    if rtn["result"]:
+        rtnFront = {
+            "code": 20000,
+            "data": rtn["dataObject"]
+        }
+    else:
+        rtnFront = {
+            "code": 50006,
+            "message": rtn["info"]
+        }
 
     return jsonify(rtnFront)
 
@@ -47,9 +62,15 @@ def user_logout():
     登出
     """
     rtn = ctl.user_logout()
-    rtnFront = {
-        "code": 20000,
-        "data": rtn["entities"]
-    }
+    if rtn["result"]:
+        rtnFront = {
+            "code": 20000,
+            "data": rtn["dataObject"]
+        }
+    else:
+        rtnFront = {
+            "code": 50006,
+            "message": rtn["info"]
+        }
 
     return jsonify(rtnFront)
