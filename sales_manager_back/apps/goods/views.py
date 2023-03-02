@@ -1,5 +1,5 @@
-from goods import goods, control
-from backApp import sett
+from apps.goods import goods, control
+from apps import sett
 from flask import request, jsonify
 import json
 from flask_login import login_required

@@ -1,13 +1,11 @@
 """
 """
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from apps import db
 
 
 class OrmBase(object):
     def __init__(self, sett):
         self.sett = sett
-        self.engine = create_engine(self.sett.DATABASE_URI, echo=True, pool_pre_ping=True)
 
 
     def singleDataList(self, dataModel, dQuery, dPage):
@@ -36,14 +34,9 @@ class OrmBase(object):
             "entities": {}
         }
 
-        iDb = False
         try:
-            # 连接数据库
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            iDb = True
             # 加入查询条件
-            rtn = self.queryFilter(db_session, dataModel, dQuery)
+            rtn = self.queryFilter(dataModel, dQuery)
             if rtn["result"]:
                 objQuery = rtn["dataObj"]
             else:
@@ -65,7 +58,7 @@ class OrmBase(object):
             rtnData["entities"]["single"] = []
             for obj in rs:
                 row = {}
-                attr = [a for a in dir(obj) if not a.startswith("_") and a not in ('metadata', 'registry')]
+                attr = [a for a in dir(obj) if not a.startswith("_") and a not in ('metadata', 'registry', 'query', 'query_class')]
                 for col in attr:
                     row[col] = getattr(obj, col)
                 rtnData["entities"]["single"].append(row)
@@ -75,13 +68,12 @@ class OrmBase(object):
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            if iDb:
-                db_session.close()
+            pass
         
         return rtnData
 
 
-    def queryFilter(self, session, model, para):
+    def queryFilter(self, model, para):
         """
         查询条件处理
         para:[
@@ -112,7 +104,7 @@ class OrmBase(object):
         }
 
         try:
-            objQuery = session.query(model)
+            objQuery = model.query
             for line in para:
                 objValue = line["value"]
                 if line["oper"] == ">":
@@ -160,21 +152,16 @@ class OrmBase(object):
             "entities": {}
         }
 
-        iDb = False
         try:
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            iDb = True
-            icnt = db_session.query(dataModel).filter(dataModel.id==iID).delete()
-            db_session.commit()
+            icnt = dataModel.query.filter(dataModel.id==iID).delete()
+            db.session.commit()
             rtnData["result"] = True
             rtnData["dataNumber"] = icnt
             rtnData["info"] = "数据[{id}]已成功删除.".format(id=iID)
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            if iDb:
-                db_session.close()
+            pass
 
         return rtnData
 
@@ -192,21 +179,16 @@ class OrmBase(object):
         }
 
         sTitle = ""
-        iDb = False
         try:
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            iDb = True
-            db_session.add(newObj)
-            db_session.commit()
+            db.session.add(newObj)
+            db.session.commit()
             rtnData["result"] = True
             rtnData["dataNumber"] = newObj.id
             rtnData["info"] = "新增数据[{id}].".format(id=newObj.id)
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            if iDb:
-                db_session.close()
+            pass
 
         return rtnData
 
@@ -223,21 +205,15 @@ class OrmBase(object):
             "entities": {}
         }
 
-        iDb = False
         try:
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            iDb = True
-            obj = db_session.query(dataModel).filter(dataModel.id==para.get("id"))
-            icnt = obj.update(para)
-            db_session.commit()
+            icnt = dataModel.query.filter(dataModel.id==para.get("id")).update(para)
+            db.session.commit()
             rtnData["result"] = True
             rtnData["dataNumber"] = icnt
             rtnData["info"] = "数据[{id}]更新成功.".format(id=obj.first().id)
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            if iDb:
-                db_session.close()
+            pass
 
         return rtnData

@@ -3,11 +3,9 @@
 """
 __author__ = "Cliff.wang"
 
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import create_engine
 import json, datetime
 from flask_login import login_user
-from admin.models import User
+from apps.admin.models import User
 from ormBase import OrmBase
 import jwt
 
@@ -24,11 +22,8 @@ class ctl_admin(OrmBase):
             "entities": {}
         }
 
-        iDb = False
         try:
-            select_db = sessionmaker(self.engine)
-            db_session = scoped_session(select_db)
-            user = db_session.query(User).filter(User.name==sUser).first()
+            user = User.query.filter(User.name==sUser).first()
             if user is not None:
                 if user.password_check(sPwd):
                     login_user(user)
@@ -50,8 +45,7 @@ class ctl_admin(OrmBase):
         except Exception as e:
             rtnData["info"] = str(e)
         finally:
-            if iDb:
-                db_session.close()
+            pass
 
         return rtnData
 

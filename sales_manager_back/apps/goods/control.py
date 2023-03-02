@@ -3,7 +3,6 @@
 """
 __author__ = "Cliff.wang"
 
-from sqlalchemy.orm import sessionmaker, scoped_session
 import json
 from ormBase import OrmBase
 
@@ -48,15 +47,15 @@ class ctl_goods(OrmBase):
             # 选择数据模型
             dataModel = None
             if sType == "category":
-                from goods.models import Category
+                from apps.goods.models import Category
                 dataModel = Category
                 dQuery = [line for line in dQuery if not (line["colname"]=="status" and line["value"] not in (0, 1))]
             elif sType == "supplier":
-                from goods.models import Supplier
+                from apps.goods.models import Supplier
                 dataModel = Supplier
                 dQuery = [line for line in dQuery if not (line["colname"]=="status" and line["value"] not in (0, 1))]
             elif sType == "goods":
-                from goods.models import Goods
+                from apps.goods.models import Goods
                 dataModel = Goods
                 dQuery = [line for line in dQuery if not (line["colname"]=="status" and line["value"] not in (0, 1))]
             else:
@@ -103,13 +102,13 @@ class ctl_goods(OrmBase):
         try:
             dataModel = None
             if sType == "category":
-                from goods.models import Category
+                from apps.goods.models import Category
                 dataModel = Category
             elif sType == "supplier":
-                from goods.models import Supplier
+                from apps.goods.models import Supplier
                 dataModel = Supplier
             elif sType == "goods":
-                from goods.models import Goods
+                from apps.goods.models import Goods
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))
@@ -138,7 +137,7 @@ class ctl_goods(OrmBase):
         try:
             if sType == "category":
                 sTitle = "类别"
-                from goods.models import Category
+                from apps.goods.models import Category
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
                 elif len(para["name"].rstrip()) <= 2:
@@ -148,7 +147,7 @@ class ctl_goods(OrmBase):
                 newObj = Category(para)
             elif sType == "supplier":
                 sTitle = "供应商"
-                from goods.models import Supplier
+                from apps.goods.models import Supplier
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
                 elif len(para["name"].rstrip()) < 4:
@@ -158,7 +157,7 @@ class ctl_goods(OrmBase):
                 newObj = Supplier(para)
             elif sType == "goods":
                 sTitle = "商品"
-                from goods.models import Goods
+                from apps.goods.models import Goods
                 if not para.get("name"):
                     raise Exception("请输入{title}名称.".format(title=sTitle))
                 elif len(para["name"].rstrip()) <= 5:
@@ -192,13 +191,13 @@ class ctl_goods(OrmBase):
         try:
             dataModel = None
             if sType == "category":
-                from goods.models import Category
+                from apps.goods.models import Category
                 dataModel = Category
             elif sType == "supplier":
-                from goods.models import Supplier
+                from apps.goods.models import Supplier
                 dataModel = Supplier
             elif sType == "goods":
-                from goods.models import Goods
+                from apps.goods.models import Goods
                 dataModel = Goods
             else:
                 raise Exception("Data Type [{type}] is not defined.".format(type=sType))

@@ -1,6 +1,6 @@
-from admin import admin, control
-from backApp import sett
-from flask import request, jsonify
+from apps.admin import admin, control
+from apps import sett
+from flask import request, jsonify, current_app
 import json
 
 ctl = control.ctl_admin(sett)
