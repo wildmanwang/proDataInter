@@ -23,7 +23,6 @@ https://blog.csdn.net/qq_41048831/article/details/127909190
 #### Flask-SQLAlchemy
 
 ## 待实现功能
-### 配置文件优化：连接字符串不要拼装
 ### Flask
 #### Flask-migrate
 #### Flask-OpenID

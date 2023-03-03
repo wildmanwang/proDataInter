@@ -8,9 +8,6 @@ sett = config.DevelopmentConfig()
 
 app = Flask(__name__)
 app.config.from_object(sett)
-app.config['SQLALCHEMY_DATABASE_URI'] = r"mysql+pymysql://root:123456@127.0.0.1:3306/sales_manager"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
-app.config['SQLALCHEMY_ECHO'] = True
 
 db = SQLAlchemy(app)
 
