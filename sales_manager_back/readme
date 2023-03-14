@@ -21,8 +21,8 @@ https://blog.csdn.net/qq_41048831/article/details/127909190
 #### Flask-Login
 ### JWT
 #### Flask-SQLAlchemy
+#### Flask-migrate
 
 ## 待实现功能
 ### Flask
-#### Flask-migrate
 #### Flask-OpenID

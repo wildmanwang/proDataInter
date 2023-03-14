@@ -20,7 +20,7 @@ class User(db.Model, UserMixin):
     updated_time = db.Column(db.DateTime, onupdate=datetime.now, nullable=True, comment="更新时间")
 
     def __init__(self, items):
-        super().__init__()
+        # super().__init__()
         for key in items:
             if hasattr(self, key):
                 setattr(self, key, items[key])
@@ -44,3 +44,9 @@ class User(db.Model, UserMixin):
             name=self.name,
             status="正常" if self.status==1 else ("未激活" if self.status==0 else ("被冻结" if self.status==2 else ("已注销" if self.status==9 else "异常状态")))
         )
+
+
+if __name__ == "__main__":
+    newUser = User({"name": "San Zhang", "status": 1})
+    db.session.add(newUser)
+    db.session.commit()

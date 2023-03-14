@@ -63,3 +63,12 @@ def load_user(id):
 
 if __name__ == '__main__':
     app.run(host=app.config["WEB_SERVER_HOST"], port=app.config["WEB_SERVER_PORT"], debug=True)
+    """
+    from apps import db
+    from apps.admin.models import User
+
+    with app.app_context():
+        user = User({"name": "Zhang san", "password": "123456", "status": 1})
+        db.session.add(user)
+        db.session.commit()
+    """

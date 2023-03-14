@@ -18,7 +18,7 @@ class Category(db.Model):
     updated_time = db.Column(db.DateTime, default=None, onupdate=datetime.now, nullable=True, comment="更新时间")
 
     def __init__(self, items):
-        Super().__init__()
+        # Super().__init__()
         for key in items:
             if hasattr(self, key):
                 setattr(self, key, items[key])
@@ -43,7 +43,7 @@ class Supplier(db.Model):
     updated_time = db.Column(db.DateTime, default=None, onupdate=datetime.now, nullable=True, comment="更新时间")
 
     def __init__(self, items):
-        Super().__init__()
+        # Super().__init__()
         for key in items:
             if hasattr(self, key):
                 setattr(self, key, items[key])
@@ -74,7 +74,7 @@ class Goods(db.Model):
     updated_time = db.Column(db.DateTime, default=None, onupdate=datetime.now, nullable=True, comment="更新时间")
 
     def __init__(self, items):
-        Super().__init__()
+        # Super().__init__()
         for key in items:
             if hasattr(self, key):
                 setattr(self, key, items[key])
