@@ -19,10 +19,10 @@ https://blog.csdn.net/qq_41048831/article/details/127909190
 #### Flask - 上下文
 #### DB连接池和线程安全
 #### Flask-Login
-### JWT
 #### Flask-SQLAlchemy
 #### Flask-migrate
+### JWT
 
 ## 待实现功能
-### Flask
-#### Flask-OpenID
+### 用户中心
+### 商品管理

@@ -23,7 +23,7 @@ class ctl_admin(OrmBase):
         }
 
         try:
-            user = User.query.filter(User.name==sUser).first()
+            user = User.query.filter(User.account==sUser).first()
             if user is not None:
                 if user.password_check(sPwd):
                     login_user(user)

@@ -12,11 +12,11 @@ app.config.from_object(sett)
 
 db = SQLAlchemy(app)
 
-# 显式导入模型，flask-migrate才会跟踪对应的模型变化
-from apps.admin.models import User
-from apps.goods.models import Category, Supplier, Goods
+# 每个模块显式导入至少一个模型、或者导入整个模型所在模块，flask-migrate才会跟踪对应的模型变化
+from apps.admin import models
+from apps.goods import models
 
-migrate = Migrate(app=app, db=db)
+migrate = Migrate(app=app, db=db, compare_server_default=True)
 
 from apps.admin import admin
 from apps.goods import goods
