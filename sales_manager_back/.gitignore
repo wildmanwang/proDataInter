@@ -5,6 +5,7 @@ ven
 deploy
 TXT
 img
+migrations
 
 *.rar
 *.spec
