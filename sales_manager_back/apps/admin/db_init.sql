@@ -4,21 +4,21 @@ insert into sysapp ( name, order_number, status ) values ( "销售前台", 20, 1
 insert into sysapp ( name, order_number, status ) values ( "用户端", 30, 1 );
 
 -- 模块
-insert into sysmodel ( name, sysapp, order_number, status ) values ( "用户中心", 1, 10, 1 );
-insert into sysmodel ( name, sysapp, order_number, status ) values ( "商品管理", 1, 20, 1 );
-insert into sysmodel ( name, sysapp, order_number, status ) values ( "订单管理", 1, 30, 1 );
-insert into sysmodel ( name, sysapp, order_number, status ) values ( "采购管理", 1, 40, 1 );
-insert into sysmodel ( name, sysapp, order_number, status ) values ( "仓库管理", 1, 50, 1 );
+insert into sysmodel ( name, sysapp, code, icon, order_number, status, remark ) values ( "用户中心", 1, 'user', 'el-icon-user-solid', 10, 1, '组织结构、用户管理、权限管理' );
+insert into sysmodel ( name, sysapp, code, icon, order_number, status, remark ) values ( "商品管理", 1, 'goods', 'el-icon-s-goods', 20, 1, '商品维修' );
+insert into sysmodel ( name, sysapp, code, icon, order_number, status, remark ) values ( "订单管理", 1, 'order', 'el-icon-s-order', 30, 1, '订单流程管理' );
+insert into sysmodel ( name, sysapp, code, icon, order_number, status, remark ) values ( "采购管理", 1, 'purchase', 'el-icon-s-platform', 40, 1, '采购流程管理' );
+insert into sysmodel ( name, sysapp, code, icon, order_number, status, remark ) values ( "仓库管理", 1, 'store', 'el-icon-s-home', 50, 1, '仓库流程管理' );
 
 -- 功能
-insert into sysfunction ( name, sysmodel, authorizate_flag, order_number, status ) values ( '角色管理', 1, 1, 10, 1 );
-insert into sysfunction ( name, sysmodel, authorizate_flag, order_number, status ) values ( '用户管理', 1, 1, 20, 1 );
-insert into sysfunction ( name, sysmodel, authorizate_flag, order_number, status ) values ( '组织管理', 1, 1, 30, 1 );
-insert into sysfunction ( name, sysmodel, authorizate_flag, order_number, status ) values ( '部门管理', 1, 1, 40, 1 );
-insert into sysfunction ( name, sysmodel, authorizate_flag, order_number, status ) values ( '员工管理', 1, 1, 50, 1 );
-insert into sysfunction ( name, sysmodel, authorizate_flag, order_number, status ) values ( '商品类别', 2, 1, 10, 1 );
-insert into sysfunction ( name, sysmodel, authorizate_flag, order_number, status ) values ( '供应商', 2, 1, 20, 1 );
-insert into sysfunction ( name, sysmodel, authorizate_flag, order_number, status ) values ( '商品管理', 2, 1, 30, 1 );
+insert into sysfunction ( name, sysmodel, authorizate_flag, code, icon, order_number, status ) values ( '角色管理', 1, 1, 'role', 'el-icon-coordinate', 10, 1 );
+insert into sysfunction ( name, sysmodel, authorizate_flag, code, icon, order_number, status ) values ( '用户管理', 1, 1, 'user', 'el-icon-user', 20, 1 );
+insert into sysfunction ( name, sysmodel, authorizate_flag, code, icon, order_number, status ) values ( '组织管理', 1, 1, 'organize', 'el-icon-office-building', 30, 1 );
+insert into sysfunction ( name, sysmodel, authorizate_flag, code, icon, order_number, status ) values ( '部门管理', 1, 1, 'department', 'el-icon-suitcase', 40, 1 );
+insert into sysfunction ( name, sysmodel, authorizate_flag, code, icon, order_number, status ) values ( '员工管理', 1, 1, 'staff', 'el-icon-table-lamp', 50, 1 );
+insert into sysfunction ( name, sysmodel, authorizate_flag, code, icon, order_number, status ) values ( '商品类别', 2, 1, 'category', 'el-icon-folder', 10, 1 );
+insert into sysfunction ( name, sysmodel, authorizate_flag, code, icon, order_number, status ) values ( '供应商', 2, 1, 'supplier', 'el-icon-truck', 20, 1 );
+insert into sysfunction ( name, sysmodel, authorizate_flag, code, icon, order_number, status ) values ( '商品管理', 2, 1, 'goods', 'el-icon-goods', 30, 1 );
 
 -- 操作
 insert into sysoperation ( name, sysfunction, order_number, status ) values ( '查看', 1, 10, 1 );

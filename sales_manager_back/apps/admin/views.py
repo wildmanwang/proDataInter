@@ -74,3 +74,21 @@ def user_logout():
         }
 
     return jsonify(rtnFront)
+
+
+@admin.route('/getmenu', methods=['get'])
+def get_menu():
+    iUser = request.args.get("user").strip()
+    rtn = ctl.get_menu(iUser)
+    if rtn["result"]:
+        rtnFront = {
+            "code": 20000,
+            "data": rtn["dataObject"]
+        }
+    else:
+        rtnFront = {
+            "code": 50006,
+            "message": rtn["info"]
+        }
+
+    return jsonify(rtnFront)
